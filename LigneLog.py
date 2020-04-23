@@ -11,7 +11,7 @@ class LigneLog:
         self.sc = True
         if(lineraw[2] == "noscore"):
             self.sc = False
-        self.IP = lineraw[1]
+        #self.IP = lineraw[1] on n'enregistre pas l'ip par souci de confidentialité
         lineraw = lineraw[0].split(' ')
         dateraw = lineraw[0].split('.')
         self.date = dateraw[0]

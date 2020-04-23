@@ -6,7 +6,7 @@ from rtf import *
 from zipfile import ZipFile
 from LigneLog import *
 
-feuille = 10
+feuille = 28
 name = "analyse-feuille " + str(feuille)
 fhtm = open(name + ".html", "w")
 frtf = open(name + ".rtf", "w")
@@ -58,7 +58,7 @@ for login in loginlist:
     listesession = [" "] * 50  # va contenir les num session exo par exo
     listedurees = [0] * 50  # va contenir les temps de travail exo par exo
     # va contenir les temps de travail des lignes "score" exo par exo
-    listedureesscores = [0]*50
+    listedureesscores = [0] * 50
     for numline in range(len(content)):
         line = LigneLog(content[numline])
         if numline + 1 < len(content):
@@ -81,8 +81,11 @@ for login in loginlist:
 
             if str(line.session) != str(listesession[exo - 1]):
                 listesession[exo - 1] = line.session
-                listelog[exo - 1] += "<br />Le " + line.date[6:8] + "/" + line.date[4:6] + \
-                    "/" + line.date[0:4] + " à partir de " + line.timetext + " : "
+                listelog[exo - 1] += "<br />Le " + line.date[6:8] + "/" + line.date[4:6]
+                # + \
+                    #"/" + line.date[0:4] + " à partir de " 
+                    #+ \
+                     #   line.timetext + " : "
 
             font1 = "<font color='red'>"
             font2 = "</font>"
@@ -107,7 +110,7 @@ for login in loginlist:
     stotale = dureetotale % 3600
     mintotale = stotale // 60
     stotale = stotale % 60
-
+    
     sdureetotale = 0
     for i in range(50):
         sdureetotale += listedureesscores[i]
@@ -115,6 +118,23 @@ for login in loginlist:
     sstotale = sdureetotale % 3600
     minstotale = sstotale // 60
     sstotale = sstotale % 60
+    
+    texte = emphhtm("Travail sur Wims : ") + "feuille n°" + str(feuille)
+    parhtm(fhtm, texte)
+    texte = emphhtm("Elève : ") + firstname + " " + name
+    parhtm(fhtm, texte)
+    texte = emphhtm("Durée approximative de travail : ") + str(htotale) + " h " + str(mintotale) + " min ... et sans doute plus de " + str(hstotale) + " h " + str(minstotale) + " min."
+    parhtm(fhtm, texte)
+    texte=emphhtm("Légende : ") + " Chaque tiret indique la visualisation d'un nouvel énoncé \
+    (un tiret long indique une recherche de plus de 5 minutes et un point une recherche de moins d'une minute).<br />\
+    Chaque nombre indique un score obtenu.<br />\
+    La" + colorhtm("green"," couleur verte") + " indique que l'enregistrement des notes est désactivé.<br />\
+    La" + colorhtm("red"," couleur rouge") + " indique que l'enregistrement des notes est activé."
+    parhtm(fhtm, texte)
+    for i in range(50):
+		if(listelog[i] != " "):
+			parhtm(fhtm,emphhtm(" Exercice n°" + str(i + 1))) #+ listelog[i])
+    parhtm(fhtm,emphhtm("Commentaires : ") + "<hr>")
 
 
 endrtf(frtf)

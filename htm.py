@@ -4,19 +4,19 @@
 def beghtm(f,text):
     """ Insère le début du fichier html
     """
-    f.write("<html><head><title>" + text + "</title></head><body>")
+    f.write("<html>\n<head>\n<title>\n" + accenthtm(text) + "\n</title>\n</head>\n<body>\n")
 
 
 def endhtm(f):
     """ Insère la fin du fichier html
     """
-    f.write("</body></html>")
+    f.write("</body>\n</html>")
 
 
 def parhtm(f,text):
     """ Insère un paragraphe (html)
     """
-    f.write("<p>" + accenthtm(text) + "</p>")
+    f.write("<p>\n" + accenthtm(text) + "\n</p>\n")
 
 
 def tchtm():
@@ -40,19 +40,22 @@ def pthtm():
 def emphhtm(text):
     """ gras italique souligné
     """
-    return "<b><u><i>" + text + "</i></u></b>"
+    return "<b><i>" + text + "</i></b>"
 
 
-def redhtm(text):
-    """ en rouge (gras) au format html
+def colorhtm(color,text):
+    """ en rouge (gras) ou en vert (ou autre) au format html
     """
-    return "<font color='red'><b>" + text + "</b></font>"
-
-
-def greenhtm(text):
-    """ en vert au format html
-    """
-    return "<font color='green'>" + text + "</font>"
+    b1 = ""
+    b2 = ""
+    col = color
+    if color == "vert":
+		col = "green"
+    if color == "rouge" or color == "red":
+		col = "red"
+		b1 = "<b>"
+		b2 = "</b>"
+    return "<font color='" + col + "'>" + b1 + text + b2 + "</font>"
 
 
 def accenthtm(text):
@@ -61,5 +64,6 @@ def accenthtm(text):
     res = text.replace('é', '&eacute;')
     res = res.replace('è', '&egrave;')
     res = res.replace('à', '&agrave;')
+    res = res.replace('°', '&deg;')
     return res
 
