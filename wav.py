@@ -65,12 +65,12 @@ for login in loginlist:
 			line2 = LigneLog(content[numline + 1])
 			duree = 0
 			if line2.session == line.session:
-				duree = line2.time - line.time
+				duree = int(line2.time - line.time)
 		dureescore = 0
 		if numline > 0:
 			line1 = LigneLog(content[numline - 1])
 			if line1.session == line.session:
-				dureescore = line.time - line1.time
+				dureescore = int(line.time - line1.time)
 		if(line.sheet == feuille):
 			exo = line.exercise
 			if(exo > len(listelog)):
@@ -81,26 +81,22 @@ for login in loginlist:
 
 			if str(line.session) != str(listesession[exo - 1]):
 				listesession[exo - 1] = line.session
-				listelog[exo - 1] += "<br />Le " + line.date[6:8] + "/" + line.date[4:6] + \
-					"/" + line.date[0:4] + " à partir de " + \
+				listelog[exo - 1] += "<br />Le " + line.date + " à partir de " + \
 						line.timetext + " : "
-
-			font1 = "<font color='red'>"
-			font2 = "</font>"
+			color = "green"
 			if(line.sc):
-				font1 = "<font color='green'><b>"
-				font2 = "</b></font>"
-			c = " &ndash;"  # tiret court
-			if duree < 60:
-				c = " &middot;"  # point si recherche de moins d'une minute
-			if duree > 300:
-				c = " &mdash;"  # tiret long si recherche de plus de 5 minutes
+				color = "red"
+			c=" -" #tiret court
+			if duree<60:
+				c=" ·" #point si recherche de moins d'une minute
+			if duree>300:
+				c=" –" #tiret long si recherche de plus de 5 minutes
 			if(line.type == "score"):
 				c = str(line.score) + " "
 				c = c.replace(".0", " ")
 				listedureesscores[exo] += dureescore
 			listedurees[exo] += duree
-			listelog[exo - 1] += font1 + c + font2
+			listelog[exo - 1] += colorhtm(color,c)
 	dureetotale = 0
 	for i in range(50):
 		dureetotale += listedurees[i]

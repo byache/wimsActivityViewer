@@ -19,24 +19,6 @@ def parhtm(f,text):
     f.write("<p>\n" + accenthtm(text) + "\n</p>\n")
 
 
-def tchtm():
-    """tiret court html
-    """
-    return " &ndash;"
-
-
-def tlhtm():
-    """tiret long html
-    """
-    return " &mdash;"
-
-
-def pthtm():
-    """point html
-    """
-    return " &middot;"
-
-
 def emphhtm(text):
     """ gras italique souligné
     """
@@ -65,5 +47,8 @@ def accenthtm(text):
     res = res.replace('è', '&egrave;')
     res = res.replace('à', '&agrave;')
     res = res.replace('°', '&deg;')
+    res = res.replace('-', '&ndash;')
+    res = res.replace('·', '&middot;')
+    res = res.replace('–', '&mdash;')
     return res
 

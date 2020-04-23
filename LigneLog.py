@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 # coding: utf8
 
+from time import mktime
 
 class LigneLog:
     # chaque ligne de log devient un objet
@@ -9,16 +10,18 @@ class LigneLog:
         lineraw = lineraw + '\t'
         lineraw = lineraw.split('\t')
         self.sc = True
-        if(lineraw[2] == "noscore"):
+        if("noscore" in lineraw):
             self.sc = False
         #self.IP = lineraw[1] on n'enregistre pas l'ip par souci de confidentialité
         lineraw = lineraw[0].split(' ')
         dateraw = lineraw[0].split('.')
-        self.date = dateraw[0]
-        timeraw = dateraw[1].split(':')
-        self.time = int(timeraw[0]) * 3600 + \
-            int(timeraw[1]) * 60 + int(timeraw[2])
+        dateraw2 = dateraw[0]
+        self.date = dateraw2[6:8] + "/" + dateraw2[4:6] + \
+					"/" + dateraw2[0:4]
         self.timetext = dateraw[1]
+        timeraw = dateraw[1].split(':')
+        structime = int(dateraw2[0:4]),int(dateraw2[4:6]),int(dateraw2[6:8]),int(timeraw[0]),int(timeraw[1]),int(timeraw[2]),0,1,-1
+        self.time = mktime(structime)
         self.session = lineraw[1]
         self.sheet = int(lineraw[2])
         self.exercise = int(lineraw[3])

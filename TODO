@@ -1,4 +1,4 @@
-Finir wav.py en html --> pb couleur rouge ; revoir les dates/time...
+Finir wav.py en html --> finir de vérifier le calcul du temps (le premier temps est proche de celui de wims)... ajouter la note
 Débuger rtf.py et ajouter le rtf à wav.py
 faire une ou des vues
 héberger qqpart le flask
