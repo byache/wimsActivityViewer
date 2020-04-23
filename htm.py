@@ -44,18 +44,18 @@ def emphhtm(text):
 
 
 def colorhtm(color,text):
-    """ en rouge (gras) ou en vert (ou autre) au format html
-    """
-    b1 = ""
-    b2 = ""
-    col = color
-    if color == "vert":
+	""" en rouge (gras) ou en vert (ou autre) au format html
+	"""
+	b1 = ""
+	b2 = ""
+	col = color
+	if color == "vert":
 		col = "green"
-    if color == "rouge" or color == "red":
+	if color == "rouge" or color == "red":
 		col = "red"
 		b1 = "<b>"
 		b2 = "</b>"
-    return "<font color='" + col + "'>" + b1 + text + b2 + "</font>"
+	return "<font color='" + col + "'>" + b1 + text + b2 + "</font>"
 
 
 def accenthtm(text):
