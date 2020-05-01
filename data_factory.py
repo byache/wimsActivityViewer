@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 # coding: utf8
+#ce fichier contient des fonctions utilisées dans wav.py
 
 from htm import *
 from rtf import *
@@ -11,17 +12,17 @@ name = "analyse-feuille " + str(feuille)
 fhtm = open(name + ".html", "w")
 frtf = open(name + ".rtf", "w")
 
-from jinja2 import Environment, PackageLoader, select_autoescape
+"""from jinja2 import Environment, PackageLoader, select_autoescape
 env = Environment(
     loader=PackageLoader('yourapplication', 'templates'),
     autoescape=select_autoescape(['html'])
-)
+)"""
 
 
-def crlist():
+def crlist(file):
     """ Crée la liste des participants ayant travaillé dans la classe
     """
-    with ZipFile('wims.zip') as myzip:
+    with ZipFile(file) as myzip:
         names = myzip.namelist()
         liste = []
         for file in names:
@@ -82,64 +83,67 @@ def linefunc(line,listelog, listesession,listedurees,listedureesscores):
 		listedurees[exo] += duree
 		listelog[exo - 1] += colorhtm(color,c)
 
-titre = "Visualisation de  l'activité des élèves sur la feuille  :" + \
-    str(feuille)
-beghtm(fhtm, titre)
-begrtf(frtf, titre)
+"""
+def data_generate():
+	titre = "Visualisation de  l'activité des élèves sur la feuille  :" + \
+		str(feuille)
+	beghtm(fhtm, titre)
+	begrtf(frtf, titre)
 
-loginlist = crlist()
+	loginlist = crlist()
 
-for login in loginlist:
-	firstname, name = fname(login)
-	with ZipFile('wims.zip') as myzip:
-		content = myzip.read('class/score/' + login)
-		content = content.decode('utf8').replace('  ', ' ')
-		content = content.split('\n')
-		content.pop()  # enl&egrave;ve le dernier &eacute;l&eacute;ment (une ligne vide)
-	listelog = [" "] * 50  # va contenir les textes exo par exo
-	listesession = [" "] * 50  # va contenir les num session exo par exo
-	listedurees = [0] * 50  # va contenir les temps de travail exo par exo
-	# va contenir les temps de travail des lignes "score" exo par exo
-	listedureesscores = [0] * 50
-	for numline in range(len(content)):
-		line = LigneLog(content[numline])
-		linefunc(line,listelog, listesession,listedurees,listedureesscores)
-	dureetotale = 0
-	for i in range(50):
-		dureetotale += listedurees[i]
-	htotale = dureetotale // 3600
-	stotale = dureetotale % 3600
-	mintotale = stotale // 60
-	stotale = stotale % 60
+	for login in loginlist:
+		firstname, name = fname(login)
+		with ZipFile('wims.zip') as myzip:
+			content = myzip.read('class/score/' + login)
+			content = content.decode('utf8').replace('  ', ' ')
+			content = content.split('\n')
+			content.pop()  # enl&egrave;ve le dernier &eacute;l&eacute;ment (une ligne vide)
+		listelog = [" "] * 50  # va contenir les textes exo par exo
+		listesession = [" "] * 50  # va contenir les num session exo par exo
+		listedurees = [0] * 50  # va contenir les temps de travail exo par exo
+		# va contenir les temps de travail des lignes "score" exo par exo
+		listedureesscores = [0] * 50
+		for numline in range(len(content)):
+			line = LigneLog(content[numline])
+			linefunc(line,listelog, listesession,listedurees,listedureesscores)
+		dureetotale = 0
+		for i in range(50):
+			dureetotale += listedurees[i]
+		htotale = dureetotale // 3600
+		stotale = dureetotale % 3600
+		mintotale = stotale // 60
+		stotale = stotale % 60
 
-	sdureetotale = 0
-	for i in range(50):
-		sdureetotale += listedureesscores[i]
-	hstotale = sdureetotale // 3600
-	sstotale = sdureetotale % 3600
-	minstotale = sstotale // 60
-	sstotale = sstotale % 60
+		sdureetotale = 0
+		for i in range(50):
+			sdureetotale += listedureesscores[i]
+		hstotale = sdureetotale // 3600
+		sstotale = sdureetotale % 3600
+		minstotale = sstotale // 60
+		sstotale = sstotale % 60
 
-	texte = emphhtm("Travail sur Wims : ") + "feuille n°" + str(feuille)
-	
-	parhtm(fhtm, texte)
-	texte = emphhtm("Elève : ") + firstname + " " + name
-	parhtm(fhtm, texte)
-	texte = emphhtm("Durée approximative de travail : ") + str(htotale) + " h " + str(mintotale) + " min ... et sans doute plus de " + str(hstotale) + " h " + str(minstotale) + " min."
-	parhtm(fhtm, texte)
-	texte=emphhtm("Légende : ") + " Chaque tiret indique la visualisation d'un nouvel énoncé \
-	(un tiret long indique une recherche de plus de 5 minutes et un point une recherche de moins d'une minute).<br />\
-	Chaque nombre indique un score obtenu.<br />\
-	La" + colorhtm("green"," couleur verte") + " indique que l'enregistrement des notes est désactivé.<br />\
-	La" + colorhtm("red"," couleur rouge") + " indique que l'enregistrement des notes est activé."
-	parhtm(fhtm, texte)
-	for i in range(50):
-		if(listelog[i] != " "):
-			parhtm(fhtm,emphhtm(" Exercice n°" + str(i + 1)) + listelog[i])
-	parhtm(fhtm,emphhtm("Commentaires : ") + "<hr>")
+		texte = emphhtm("Travail sur Wims : ") + "feuille n°" + str(feuille)
+		
+		parhtm(fhtm, texte)
+		texte = emphhtm("Elève : ") + firstname + " " + name
+		parhtm(fhtm, texte)
+		texte = emphhtm("Durée approximative de travail : ") + str(htotale) + " h " + str(mintotale) + " min ... et sans doute plus de " + str(hstotale) + " h " + str(minstotale) + " min."
+		parhtm(fhtm, texte)
+		texte=emphhtm("Légende : ") + " Chaque tiret indique la visualisation d'un nouvel énoncé \
+		(un tiret long indique une recherche de plus de 5 minutes et un point une recherche de moins d'une minute).<br />\
+		Chaque nombre indique un score obtenu.<br />\
+		La" + colorhtm("green"," couleur verte") + " indique que l'enregistrement des notes est désactivé.<br />\
+		La" + colorhtm("red"," couleur rouge") + " indique que l'enregistrement des notes est activé."
+		parhtm(fhtm, texte)
+		for i in range(50):
+			if(listelog[i] != " "):
+				parhtm(fhtm,emphhtm(" Exercice n°" + str(i + 1)) + listelog[i])
+		parhtm(fhtm,emphhtm("Commentaires : ") + "<hr>")
 
 
-endrtf(frtf)
-endhtm(fhtm)
-fhtm.close()
-frtf.close()
+	endrtf(frtf)
+	endhtm(fhtm)
+	fhtm.close()
+	frtf.close()
+"""
