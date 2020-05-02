@@ -5,18 +5,19 @@
 from htm import *
 from rtf import *
 from zipfile import ZipFile
-from LigneLog import *
+from classes import *
+from flask import render_template
 
 feuille = 28
 name = "analyse-feuille " + str(feuille)
 fhtm = open(name + ".html", "w")
 frtf = open(name + ".rtf", "w")
 
-"""from jinja2 import Environment, PackageLoader, select_autoescape
+from jinja2 import Environment, PackageLoader, select_autoescape
 env = Environment(
-    loader=PackageLoader('yourapplication', 'templates'),
+    loader=PackageLoader('wimsActivityViewer', 'templates'),
     autoescape=select_autoescape(['html'])
-)"""
+)
 
 
 def crlist(file):
@@ -33,13 +34,13 @@ def crlist(file):
     return liste
 
 
-def fname(username):
+def fname(file,username):
     """ Va chercher le nom et le prénom du participant
     """
-    with ZipFile('wims.zip') as myzip:
-        file = myzip.read('class/.users/' + username)
-        file = file.decode('latin1').split('\n')
-        for line in file:
+    with ZipFile(file) as myzip:
+        file2 = myzip.read('class/.users/' + username)
+        file2 = file2.decode('latin1').split('\n')
+        for line in file2:
             if 'lastname' in line:
                 lastname = line.split('=')[1]
             elif 'firstname' in line:
@@ -83,18 +84,24 @@ def linefunc(line,listelog, listesession,listedurees,listedureesscores):
 		listedurees[exo] += duree
 		listelog[exo - 1] += colorhtm(color,c)
 
-"""
-def data_generate():
+#fonction principale, qui génère un fichier odt et le contenu de la vue html
+def data_factory(file,feuille):  #file : le fichier .zip contenant l'archive de la classe wims ; feuille : un integer contenant le numéro de la feuille wims à regarder
 	titre = "Visualisation de  l'activité des élèves sur la feuille  :" + \
 		str(feuille)
 	beghtm(fhtm, titre)
-	begrtf(frtf, titre)
 
-	loginlist = crlist()
-
-	for login in loginlist:
-		firstname, name = fname(login)
-		with ZipFile('wims.zip') as myzip:
+	loginlist = crlist(file)
+	data = [User() for login in loginlist]
+	
+	for i in range(len(data)):
+		login = loginlist[i]
+		user = data[i]
+		user.firstname, user.lastname = fname(file,login)
+	
+	"""for login in loginlist:
+		
+		firstname, name = fname(file,login)
+		with ZipFile(file) as myzip:
 			content = myzip.read('class/score/' + login)
 			content = content.decode('utf8').replace('  ', ' ')
 			content = content.split('\n')
@@ -140,10 +147,9 @@ def data_generate():
 			if(listelog[i] != " "):
 				parhtm(fhtm,emphhtm(" Exercice n°" + str(i + 1)) + listelog[i])
 		parhtm(fhtm,emphhtm("Commentaires : ") + "<hr>")
+"""
 
-
-	endrtf(frtf)
 	endhtm(fhtm)
 	fhtm.close()
-	frtf.close()
-"""
+	return render_template('resultat.html', data=data)
+

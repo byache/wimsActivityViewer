@@ -29,11 +29,10 @@ def upload_file():
         # if user does not select file, browser also
         # submit an empty part without filename
         if file.filename == '':
-            flash('No selected file')
+            flash('Aucun fichier sélectionné')
             return redirect(request.url)
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            liste = crlist(filename)
-            return render_template('resultat.html',liste=liste)
+            return data_factory(file,28)
     return render_template('accueil.html')

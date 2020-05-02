@@ -3,6 +3,8 @@
 
 from time import mktime
 
+
+# cette classe gère les données des lignes du fichier de log "scores"
 class LigneLog:
     # chaque ligne de log devient un objet
     def __init__(self, lineraw):
@@ -29,3 +31,12 @@ class LigneLog:
         self.score = 0
         if(lineraw[4] == "score"):
             self.score = float(lineraw[5])
+
+
+
+# cette classe gère les données des utilisateurs
+class User:
+    # chaque ligne de log devient un objet
+    def __init__(self):
+        self.firstname = ''
+        self.lastname = ''

@@ -1,2 +1,6 @@
 <!DOCTYPE html>
-<p> {{ liste }} </p>
+<p> 
+	{% for user in data %} 
+	<li>{{ user.firstname }}</li>
+	{% endfor %}
+</p>
