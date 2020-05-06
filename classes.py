@@ -40,3 +40,9 @@ class User:
     def __init__(self):
         self.firstname = ''
         self.lastname = ''
+        self.h = 0
+        self.min = 0
+        self.sh = 0
+        self.smin = 0
+        self.note = 0
+        self.listelog = []

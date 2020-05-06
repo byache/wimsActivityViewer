@@ -1,6 +1,22 @@
 <!DOCTYPE html>
-<p> 
+
+	<h2>Visualisation de  l'activité des élèves sur la feuille : {{ feuille }}</h2>
+
 	{% for user in data %} 
-	<li>{{ user.firstname }}</li>
+		<p><b>Travail sur Wims : </b>feuille n°{{ feuille }}</p>
+		<p><b>Elève : </b>{{ user.firstname }} {{ user.lastname }}</p>
+		<p><b>Note :</b> {{ user.note }} /10 </p>
+		<p><b>Durée approximative de travail : </b>{{ user.h }} h {{ user.min }} min ... et sans doute plus de {{ user.sh }} h {{ user.smin }} min.</p>
+		<p><b>Légende : </b>Chaque tiret indique la visualisation d'un nouvel énoncé (un tiret long indique une recherche de plus de 5 minutes et 
+		un point une recherche de moins d'une minute).<br />
+		Chaque nombre indique un score obtenu.<br />
+		La <font color="green">couleur verte</font> indique que l'enregistrement des notes est désactivé.<br />
+		La <font color="red"><b>couleur rouge</b></font> indique que l'enregistrement des notes est activé.</p>
+		<ul>{% for i in range(50) %}
+			{% if user.listelog[i] != " " %}
+					<li><b>Exercice n°{{i+1}}</b> {{ user.listelog[i] }}</li>
+			{% endif %}
+		{% endfor %}</ul>
+		<b>Commentaires : </b>
+		<hr>
 	{% endfor %}
-</p>
