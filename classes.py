@@ -5,6 +5,11 @@ from time import mktime
 
 
 # cette classe gère les données des lignes du fichier de log "scores"
+#extrait de ce genre de fichier :
+#20191215.19:17:52 RH225FD237 28  1 renew  	109.0.207.75	181276269	noscore
+#20191215.19:17:59 RH225FD237 28  1 score 0  	109.0.207.75		noscore
+#20191215.19:18:09 RH225FD237 28  1 new  	109.0.207.75	181613962
+#20191215.19:18:13 RH225FD237 28  1 score 10  	109.0.207.75
 class LigneLog:
     # chaque ligne de log devient un objet
     def __init__(self, lineraw):
@@ -45,4 +50,4 @@ class User:
         self.sh = 0
         self.smin = 0
         self.note = 0
-        self.listelog = []
+        self.listdata = []

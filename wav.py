@@ -5,6 +5,7 @@
 import os
 from flask import Flask, flash, request, redirect, url_for, render_template
 from werkzeug.utils import secure_filename
+from io import BytesIO
 from data_factory import * #contient des fonctions enlevées d'ici pour ne pas surcharger...
 
 UPLOAD_FOLDER = ''
@@ -33,6 +34,5 @@ def upload_file():
             return redirect(request.url)
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return data_factory(file,28)
+            return data_factory(BytesIO(file.read()),28)
     return render_template('accueil.html')

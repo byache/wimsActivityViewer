@@ -12,9 +12,19 @@
 		Chaque nombre indique un score obtenu.<br />
 		La <font color="green">couleur verte</font> indique que l'enregistrement des notes est désactivé.<br />
 		La <font color="red"><b>couleur rouge</b></font> indique que l'enregistrement des notes est activé.</p>
-		<ul>{% for i in range(50) %}
-			{% if user.listelog[i] != " " %}
-					<li><b>Exercice n°{{i+1}}</b> {{ user.listelog[i] }}</li>
+		<ul>{% for i in range(user.listdata|length) %}
+			{% if user.listdata[i]|length > 0 %}
+				<li><b>Exercice n°{{i+1}}</b>
+				<ul>
+				{% for dict in user.listdata[i] %}
+					<li>Le {{ dict['date'] }} à partir de {{ dict['heure'] }} : 
+					{% for data in dict['data'] %}
+						<font color= "{{ data[0] }}"> {{ data[1] }} </font> 
+					{% endfor %}
+					</li>
+				{% endfor %}
+				</ul>
+				</li>
 			{% endif %}
 		{% endfor %}</ul>
 		<b>Commentaires : </b>
