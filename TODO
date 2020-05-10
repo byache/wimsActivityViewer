@@ -1,6 +1,7 @@
-Finir wav.py en html --> finir de vérifier le calcul du temps (le premier temps est proche de celui de wims)... ajouter la note
-Débuger rtf.py et ajouter le rtf à wav.py
-faire une ou des vues
+ajouter la note
+finir les vues
+faire un fichier odt
+enlever rtf et htm.py
 héberger qqpart le flask
 
 

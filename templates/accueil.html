@@ -3,20 +3,25 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1">
-		<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
-		<link rel="stylesheet" href="{{ url_for('static', filename='css/pronote2wims.css') }}">
-		<script defer src="https://use.fontawesome.com/releases/v5.13.0/js/all.js"></script>  -->
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/knacss.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/wav.css') }}">
+		
         <title>WimsActivityViewer</title>
     </head>
 
     <body>
-        <h1>accueil</h1>
-        <div id="tools-content">
+		<h1>Visualisation de l'activité Wims</h1>
+		<hr>
+		<p>Cet outil permet de visualiser simplement et de façon fouillée l'activité des participants à une classe Wims, sur une feuille de travail donnée.</p>
+		<p>Il permet d'obtenir un fichier éditable dans un traitement de texte contenant ces visuels : l'enseignant peut ainsi les imprimer après avoir ajouté un commentaire, par exemple d'ordre méthodologique.</p>
+		<hr>
+		<div id="tools-content">
 			{% include 'app_upload.html'%}
 		</div>
-		<div id="help-content" class="is-hidden">
-			<!-- include 'help.html'-->
-		</div>
+		<!-- <div id="help-content" class="is-hidden">
+			include 'help.html'
+		</div>-->
+
     </body>
 	<!-- <script src="{{ url_for('static', filename='js/pronote2wims.js') }}"></script>
 	<script>
