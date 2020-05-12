@@ -1,3 +1,4 @@
+gérer les "hint" et les "rafale" dans le listdata
 ajouter la note
 finir les vues
 faire un fichier odt
@@ -5,3 +6,63 @@ enlever rtf et htm.py
 héberger qqpart le flask
 
 
+mode d'emploi pour le dossier .sheets
+** .require reprend le nombre de point demandé pour chaque exo de chaque feuille (info qui est aussi dans chaque fihier de feuille .sheet1 etc)
+
+** .severity : le 10 de la première ligne : ???notation sur 10 ???
+les autres lignes : poids / règle de calcul (entre 0 et 6) indicateur (entre 0 et 2)
+
+** .weights : poids des exos dans les feuilles
+
+----------------aide de wims tech doc
+!!
+!! description of format of file .sheets
+
+each record is a sheet.
+
+:status
+expiration date
+title of the sheet
+description of the sheet
+link to a doc of the class for presentation use (instead of the theme)
+comment (display only for teacher)
+icone
+0 or 1 according to exo description show in the OEF exercises.
+Condition to hide sheet with techvar
+
+!!
+!! description of format of file .sheet$i
+
+each record is a series of exercices
+
+:module
+parameters
+points
+weight
+title
+description
+score dependancy
+comment (display only for teacher)
+internal link for help
+icone
+---------------------
+
+
+** .sheets : premier champ : 0 (non activé) 1(activé) 2(perime) 3(perime+caché)
+2e champ : date préremption
+3e champ : titre
+4e champ : Texte d'explication visible par élèves
+5e champ : commentaire visible par enseignant ???
+6e chmp : adresse bloc présentation ???
+dernier champ : "afficher description des exercices en même temps que leur énoncé" (0/1 : oui/non)
+
+** .sheet1 :
+1e champ : adresse exo
+2e champ : points requis
+3e champ : poids
+4e champ : titre
+5e champ : description
+etc...
+
+dans class :
+** si limitation horaires enregistrement des notes feuille 16 : info enregistrée dans le fichier ".16"

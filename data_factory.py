@@ -10,6 +10,10 @@ from flask import render_template
 
 feuille = 28
 
+from odf.opendocument import OpenDocumentText
+from odf.style import Style, TextProperties, ParagraphProperties
+from odf.text import H, P, Span
+
 from jinja2 import Environment, PackageLoader, select_autoescape
 env = Environment(
     loader=PackageLoader('wimsActivityViewer', 'templates'),
@@ -43,6 +47,58 @@ def fname(file,username):
             elif 'firstname' in line:
                 firstname = line.split('=')[1]
     return firstname, lastname
+
+def createodt(data):
+
+	textdoc = OpenDocumentText()
+	# Styles
+	s = textdoc.styles
+	head = Style(name="head", family="paragraph")
+	head.addElement(TextProperties(attributes={'fontsize':"18pt",'fontweight':"bold" }))
+	s.addElement(head)
+	# bold style
+	b = Style(name="b", family="text")
+	boldprop = TextProperties(fontweight="bold")
+	b.addElement(boldprop)
+	textdoc.automaticstyles.addElement(b)
+	# red style
+	r = Style(name="r", family="text")
+	redprop = TextProperties(fontweight="bold", color="#FF0000")
+	r.addElement(redprop)
+	textdoc.automaticstyles.addElement(r)
+	# green style
+	g = Style(name="g", family="text")
+	greenprop = TextProperties(color="#008000")
+	g.addElement(greenprop)
+	textdoc.automaticstyles.addElement(g)
+	# Create a style for the paragraph with page-break
+	pb = Style(name="pb", parentstylename="Standard", family="paragraph")
+	pb.addElement(ParagraphProperties(breakbefore="page"))
+	textdoc.automaticstyles.addElement(pb)
+	# Text
+	titre = 'WimsActivityViewer classe --- feuille '+str(feuille)
+	for user in data:
+		p = P(text="Elève : "+user.firstname+" "+user.lastname)
+		textdoc.text.addElement(p)
+		p = P(text="Légende : Chaque tiret indique la visualisation d'un nouvel énoncé (un tiret long indique une recherche de plus de 5 minutes et un point une recherche de moins d'une minute).")
+		textdoc.text.addElement(p)
+		p = P(text="Chaque nombre indique un score obtenu.")
+		textdoc.text.addElement(p)
+		p = P(text="La ")
+		part = Span(stylename=g, text = "couleur verte")
+		p.addElement(part)
+		part = Span(text="indique que l'enregistrement des notes est désactivé.")
+		p.addElement(part)
+		textdoc.text.addElement(p)
+		p = P(text="La ")
+		part = Span(stylename=r, text = "couleur rouge")
+		p.addElement(part)
+		part = Span(text="indique que l'enregistrement des notes est activé.")
+		p.addElement(part)
+		textdoc.text.addElement(p)
+		p = P(stylename=pb,text=u'Second paragraph')
+		textdoc.text.addElement(p)
+	textdoc.save(titre+".odt")
 
 #fonction principale, qui génère un fichier odt et le contenu de la vue html
 def data_factory(file,feuille):  #file : le fichier .zip contenant l'archive de la classe wims ; feuille : un integer contenant le numéro de la feuille wims à regarder
@@ -126,6 +182,8 @@ def data_factory(file,feuille):  #file : le fichier .zip contenant l'archive de 
 		user.sh = sdureetotale // 3600
 		sstotale = sdureetotale % 3600
 		user.smin = sstotale // 60
+		
+		createodt(data)
 		
 	return render_template('resultat.html', feuille=feuille, data=data)
 
