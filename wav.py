@@ -36,3 +36,5 @@ def upload_file():
             filename = secure_filename(file.filename)
             return data_factory(BytesIO(file.read()),28)
     return render_template('accueil.html')
+
+application = app

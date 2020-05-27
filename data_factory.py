@@ -11,13 +11,15 @@ from flask import render_template
 feuille = 28
 
 from odf.opendocument import OpenDocumentText
-from odf.style import Style, TextProperties, ParagraphProperties
+from odf.style import Style, TextProperties, ParagraphProperties, FontFace
 from odf.text import H, P, Span
+from odf.office import FontFaceDecls
 
-from jinja2 import Environment, PackageLoader, select_autoescape
+from jinja2 import Environment, PackageLoader, select_autoescape, FileSystemLoader
+import os.path
+
 env = Environment(
-    loader=PackageLoader('wimsActivityViewer', 'templates'),
-    autoescape=select_autoescape(['html'])
+    loader=FileSystemLoader('%s/templates/' % os.path.dirname(__file__))
 )
 
 
@@ -48,54 +50,128 @@ def fname(file,username):
                 firstname = line.split('=')[1]
     return firstname, lastname
 
-def createodt(data):
+def fsheet(file,feuille):
+    """ Va chercher le titre de la feuille numéro feuille
+    """
+    with ZipFile(file) as myzip:
+        file2 = myzip.read('class/sheets/.sheets')
+        file2 = file2.decode('latin1').split(':')
+        file3 = file2[feuille+1].split('\n')
+        titre = file3[2]
+    return titre
+
+def createodt(file,data):
 
 	textdoc = OpenDocumentText()
+	textdoc.fontfacedecls.addElement(FontFace(name="Arial",fontfamily="Arial",fontfamilygeneric="swiss",fontpitch="variable"))
 	# Styles
 	s = textdoc.styles
-	head = Style(name="head", family="paragraph")
-	head.addElement(TextProperties(attributes={'fontsize':"18pt",'fontweight':"bold" }))
-	s.addElement(head)
+	#style normal   ---> faire plutôt un style par défaut en justilié taille 16...
+	StandardStyle = Style(name="Standard", family="paragraph")
+	StandardStyle.addElement(TextProperties(fontsize="16"))
+	s.addElement(StandardStyle)
 	# bold style
-	b = Style(name="b", family="text")
+	b = Style(name="b", family="text", parentstylename='Standard')
 	boldprop = TextProperties(fontweight="bold")
 	b.addElement(boldprop)
 	textdoc.automaticstyles.addElement(b)
 	# red style
-	r = Style(name="r", family="text")
+	r = Style(name="r", family="text", parentstylename='Standard')
 	redprop = TextProperties(fontweight="bold", color="#FF0000")
 	r.addElement(redprop)
 	textdoc.automaticstyles.addElement(r)
 	# green style
-	g = Style(name="g", family="text")
+	g = Style(name="g", family="text", parentstylename='Standard')
 	greenprop = TextProperties(color="#008000")
 	g.addElement(greenprop)
 	textdoc.automaticstyles.addElement(g)
 	# Create a style for the paragraph with page-break
 	pb = Style(name="pb", parentstylename="Standard", family="paragraph")
-	pb.addElement(ParagraphProperties(breakbefore="page"))
+	pb.addElement(ParagraphProperties(breakbefore="page")) #mettre breakafter ?
 	textdoc.automaticstyles.addElement(pb)
 	# Text
-	titre = 'WimsActivityViewer classe --- feuille '+str(feuille)
+	titre = 'WimsActivityViewer feuille '+str(feuille)
 	for user in data:
-		p = P(text="Elève : "+user.firstname+" "+user.lastname)
+		p = P()
+		part = Span(stylename=b, text = "Bilan du travail sur Wims : ")
+		p.addElement(part)
+		part = Span(text = "feuille n°"+str(feuille)+" ("+fsheet(file,feuille)+")")
+		p.addElement(part)		
 		textdoc.text.addElement(p)
-		p = P(text="Légende : Chaque tiret indique la visualisation d'un nouvel énoncé (un tiret long indique une recherche de plus de 5 minutes et un point une recherche de moins d'une minute).")
+		
+		p = P()
+		textdoc.text.addElement(p)
+
+		p = P()
+		part = Span(stylename = b, text="Élève : ")
+		p.addElement(part)
+		part = Span(text = user.firstname+" "+user.lastname)
+		p.addElement(part)
+		textdoc.text.addElement(p)
+		
+		p = P()
+		textdoc.text.addElement(p)
+		
+		p = P()
+		part = Span(stylename = b, text="Note : ")
+		p.addElement(part)
+		part = Span(text = str(user.note)+" / 10")
+		p.addElement(part)
+		textdoc.text.addElement(p)
+		
+		p = P()
+		textdoc.text.addElement(p)
+		
+		p = P()
+		part = Span(stylename = b, text="Durée approximative de travail : ")
+		p.addElement(part)
+		part = Span(text = str(user.h)+" h "+str(user.min)+" min (sans doute plus que " + str(user.sh)+" h "+str(user.smin)+" min)")
+		p.addElement(part)
+		textdoc.text.addElement(p)
+		
+		p = P()
+		textdoc.text.addElement(p)
+		
+		p = P()
+		part = Span(stylename = b, text="Légende : ")
+		p.addElement(part)
+		p = P(text="Chaque tiret indique la visualisation d'un nouvel énoncé (un tiret long indique une recherche de plus de 5 minutes et un point une recherche de moins d'une minute).")
 		textdoc.text.addElement(p)
 		p = P(text="Chaque nombre indique un score obtenu.")
 		textdoc.text.addElement(p)
 		p = P(text="La ")
-		part = Span(stylename=g, text = "couleur verte")
+		part = Span(stylename=g, text = "couleur verte ")
 		p.addElement(part)
 		part = Span(text="indique que l'enregistrement des notes est désactivé.")
 		p.addElement(part)
 		textdoc.text.addElement(p)
 		p = P(text="La ")
-		part = Span(stylename=r, text = "couleur rouge")
+		part = Span(stylename=r, text = "couleur rouge ")
 		p.addElement(part)
 		part = Span(text="indique que l'enregistrement des notes est activé.")
 		p.addElement(part)
 		textdoc.text.addElement(p)
+		
+		p = P()
+		textdoc.text.addElement(p)
+		
+		for i in range(len(user.listdata)):
+			if len(user.listdata[i]) > 0 :
+				p = P()
+				part = Span(stylename = b, text="Exercice n° : "+str(i+1))
+				p.addElement(part)
+				textdoc.text.addElement(p)
+				
+				for dict in user.listdata[i]:
+					p = P()
+					part = Span(text="le "+dict['date'] + " à partir de " + dict['heure'] + " : ")
+					p.addElement(part)
+					for data in dict['data']:
+						part = Span(stylename = data[0][0], text=data[1])
+						p.addElement(part)
+					textdoc.text.addElement(p)
+
+		
 		p = P(stylename=pb,text=u'Second paragraph')
 		textdoc.text.addElement(p)
 	textdoc.save(titre+".odt")
@@ -183,7 +259,7 @@ def data_factory(file,feuille):  #file : le fichier .zip contenant l'archive de 
 		sstotale = sdureetotale % 3600
 		user.smin = sstotale // 60
 		
-		createodt(data)
+		createodt(file,data)
 		
 	return render_template('resultat.html', feuille=feuille, data=data)
 
