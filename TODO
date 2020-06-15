@@ -1,9 +1,9 @@
+enlever "page" de la session et gérer cela avec un GET pour plus de robustesse lorsqu'on fait "retour arrière"
+
 gérer les "hint" et les "rafale" dans le listdata
 ajouter la note
 finir les vues
-faire un fichier odt
 enlever rtf et htm.py
-héberger qqpart le flask
 
 
 mode d'emploi pour le dossier .sheets
