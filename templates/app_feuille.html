@@ -6,7 +6,7 @@
 		{% set feuille = feuilles[i] %}
 		<div>
 			<input type="radio" name="feuille" value={{ i }}>
-			<label>{{ (i+1)|string +' '+feuille }}</label>
+			<label>{{ (i+1)|string +' '+feuille|safe }}</label>
 		</div>
 		{% endfor %}
 		<input type="hidden" name="page" value="result">
