@@ -8,8 +8,6 @@ from zipfile import ZipFile
 from classes import *
 from flask import render_template
 
-feuille = 28
-
 from odf.opendocument import OpenDocumentText
 from odf.style import Style, TextProperties, ParagraphProperties, FontFace
 from odf.text import H, P, Span
@@ -19,48 +17,51 @@ from jinja2 import Environment, PackageLoader, select_autoescape, FileSystemLoad
 import os.path
 
 env = Environment(
-    loader=FileSystemLoader('%s/templates/' % os.path.dirname(__file__))
+	loader=FileSystemLoader('%s/templates/' % os.path.dirname(__file__))
 )
 
 
 def crlist(file):
-    """ Crée la liste des participants ayant travaillé dans la classe
-    """
-    with ZipFile(file) as myzip:
-        names = myzip.namelist()
-        liste = []
-        for file in names:
-            if '/score' in file and '.exam' not in file and 'supervisor' not in file:
-                tmp = file.split('/')[-1]
-                if tmp != '':
-                    liste.append(tmp)
-    return liste
+	""" Crée la liste des participants ayant travaillé dans la classe
+	"""
+	with ZipFile(file) as myzip:
+		names = myzip.namelist()
+		liste = []
+		for file in names:
+			if '/score' in file and '.exam' not in file and 'supervisor' not in file:
+				tmp = file.split('/')[-1]
+				if tmp != '':
+					liste.append(tmp)
+	return liste
 
 
 def fname(file,username):
-    """ Va chercher le nom et le prénom du participant
-    """
-    with ZipFile(file) as myzip:
-        file2 = myzip.read('class/.users/' + username)
-        file2 = file2.decode('latin1').split('\n')
-        for line in file2:
-            if 'lastname' in line:
-                lastname = line.split('=')[1]
-            elif 'firstname' in line:
-                firstname = line.split('=')[1]
-    return firstname, lastname
+	""" Va chercher le nom et le prénom du participant
+	"""
+	with ZipFile(file) as myzip:
+		file2 = myzip.read('class/.users/' + username)
+		file2 = file2.decode('latin1').split('\n')
+		for line in file2:
+			if 'lastname' in line:
+				lastname = line.split('=')[1]
+			elif 'firstname' in line:
+				firstname = line.split('=')[1]
+	return firstname, lastname
+	
+def fsheets(file):
+	""" Va chercher la liste des titres des feuilles
+	"""
+	with ZipFile(file) as myzip:
+		file2 = myzip.read('class/sheets/.sheets')
+		file2 = file2.decode('latin1').split(':')
+		res = []
+		for sh in file2:
+			if len(sh)>2:
+				titre = sh.split('\n')[2]
+				res += [titre]
+	return res
 
-def fsheet(file,feuille):
-    """ Va chercher le titre de la feuille numéro feuille
-    """
-    with ZipFile(file) as myzip:
-        file2 = myzip.read('class/sheets/.sheets')
-        file2 = file2.decode('latin1').split(':')
-        file3 = file2[feuille+1].split('\n')
-        titre = file3[2]
-    return titre
-
-def createodt(file,data):
+def createodt(file,data,feuille,dirpath):
 
 	textdoc = OpenDocumentText()
 	textdoc.fontfacedecls.addElement(FontFace(name="Arial",fontfamily="Arial",fontfamilygeneric="swiss",fontpitch="variable"))
@@ -90,12 +91,11 @@ def createodt(file,data):
 	pb.addElement(ParagraphProperties(breakbefore="page")) #mettre breakafter ?
 	textdoc.automaticstyles.addElement(pb)
 	# Text
-	titre = 'WimsActivityViewer feuille '+str(feuille)
 	for user in data:
 		p = P()
 		part = Span(stylename=b, text = "Bilan du travail sur Wims : ")
 		p.addElement(part)
-		part = Span(text = "feuille n°"+str(feuille)+" ("+fsheet(file,feuille)+")")
+		part = Span(text = "feuille n°"+str(feuille+1)+" ("+fsheets(file)[feuille]+")")
 		p.addElement(part)		
 		textdoc.text.addElement(p)
 		
@@ -174,10 +174,13 @@ def createodt(file,data):
 		
 		p = P(stylename=pb,text=u'Second paragraph')
 		textdoc.text.addElement(p)
-	textdoc.save(titre+".odt")
+	titre = 'WimsActivityViewer_feuille_'+str(feuille+1)+'.odt'
+	titre = os.path.join(dirpath,titre)
+	textdoc.save(titre)
+	return titre
 
 #fonction principale, qui génère un fichier odt et le contenu de la vue html
-def data_factory(file,feuille):  #file : le fichier .zip contenant l'archive de la classe wims ; feuille : un integer contenant le numéro de la feuille wims à regarder
+def data_factory(file,feuille,dirpath):  #file : le fichier .zip contenant l'archive de la classe wims ; feuille : un integer contenant le numéro de la feuille wims à regarder
 	loginlist = crlist(file)
 	data = [User() for login in loginlist]
 	
@@ -259,7 +262,7 @@ def data_factory(file,feuille):  #file : le fichier .zip contenant l'archive de 
 		sstotale = sdureetotale % 3600
 		user.smin = sstotale // 60
 		
-		createodt(file,data)
+		lien = createodt(file,data,feuille,dirpath)
 		
-	return render_template('resultat.html', feuille=feuille, data=data)
+	return render_template('resultat.html', feuille=feuille, data=data, lien=lien)
 

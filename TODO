@@ -1,4 +1,6 @@
-enlever "page" de la session et gérer cela avec un GET pour plus de robustesse lorsqu'on fait "retour arrière"
+vérifier la robustesse lorsqu'on fait "retour arrière" ou autre
+mettre des try catch pour les cas où le fichier zip n'est pas conforme
+ajouter un lien "fermer la session et supprimer les données" (de toute façon lles seront supprimées au bout d'une heure
 
 gérer les "hint" et les "rafale" dans le listdata
 ajouter la note

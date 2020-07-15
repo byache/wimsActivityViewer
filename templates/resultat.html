@@ -10,10 +10,25 @@
     </head>
 
     <body>
-	<h3>Visualisation de  l'activité des élèves sur la feuille : {{ feuille }}</h2>
-
+	<h3>Visualisation de  l'activité des élèves sur la feuille {{ feuille+1 }} :</h2>
+		<p>Voici le fichier d'analyse que vous avez demandé :
+			<a href="{{lien}}">Cliquez pour le télécharger.</a>
+		</p>
+		<form method="post" enctype="multipart/form-data">
+			Maintenant, vous pouvez : 
+			<div>
+				<input type="radio" name="page" value="accueil">
+				<label>Soumettre une autre sauvegrade de classe Wims.</label>
+			</div>
+			<div>
+				<input type="radio" name="page" value="feuille">
+				<label>Demander l'analyse d'une autre feuille de travail.</label>
+			</div>
+		<input type="submit" value="Valider">
+		</form>
+	<div>
 	{% for user in data %} 
-		<p><b>Travail sur Wims : </b>feuille n°{{ feuille }}</p>
+		<p><b>Travail sur Wims : </b>feuille n°{{ feuille+1 }}</p>
 		<p><b>Elève : </b>{{ user.firstname }} {{ user.lastname }}</p>
 		<p><b>Note :</b> {{ user.note }} /10 </p>
 		<p><b>Durée approximative de travail : </b>{{ user.h }} h {{ user.min }} min ... et sans doute plus de {{ user.sh }} h {{ user.smin }} min.</p>
@@ -40,3 +55,4 @@
 		<b>Commentaires : </b>
 		<hr>
 	{% endfor %}
+	</div>
