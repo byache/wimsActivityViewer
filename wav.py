@@ -38,11 +38,9 @@ def cleanData(session):
 def cleanAllData(duration=3600):
 	#supprime tous les fichiers de 'tmp' non modifiés depuis 'duration' secondes
 	t_limite = time() - duration
-	flash(t_limite)
 	sessions = os.listdir(app.config['UPLOAD_FOLDER'])
 	for s in sessions:
 		if os.path.getmtime(os.path.join(app.config['UPLOAD_FOLDER'], s)) < t_limite :
-			flash(os.path.getmtime(os.path.join(app.config['UPLOAD_FOLDER'], s)))
 			cleanData(s)
 
 @app.route('/tmp/<session>/<titre>')
@@ -52,6 +50,8 @@ def download_file(session,titre):
 
 @app.route('/', methods=['GET', 'POST'])
 def main_function():
+	# on crée le répertoire tmp s'il n'existe pas déjà
+	os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 	# on nettoie les sessions trop vieilles (+ de 1h)
 	cleanAllData(3600)
 	
@@ -70,14 +70,14 @@ def main_function():
 	pseudo = session['pseudo']
 	dirname = secure_filename(pseudo)
 	dirpath = os.path.join(app.config['UPLOAD_FOLDER'], dirname)
+	#crée le répertoire s'il n'existe pas déjà (inutile à priori, mais bon... 
+	os.makedirs(dirpath, exist_ok=True)
 	zipname = os.path.join(dirpath,'class.zip')
-	flash(dirpath)
 	#succession des vues : ["accueil","feuille","result"]
 	try:
 		page = request.form['page']
 	except:
 		page = 'accueil'
-	flash(page)
 	feuilles = []
 		
 	#if page == 'accueil':
@@ -112,10 +112,6 @@ def main_function():
 	elif page == 'result':
 		feuille = int(request.form['feuille'])
 		return data_factory(zipname,feuille,dirpath)
-	#avant d'afficher la page, on recherche quelle sera la page suivante et on la met dans le cookie session
-	#page2 = itineraire[(itineraire.index(page)+1)%3]
-	#session['page']=page2
-	#flash(session)
 	return render_template('accueil.html', page=page, feuilles=feuilles)
 
 application = app
