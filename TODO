@@ -1,11 +1,4 @@
-vérifier la robustesse lorsqu'on fait "retour arrière" ou autre
-mettre des try catch pour les cas où le fichier zip n'est pas conforme
-ajouter un lien "fermer la session et supprimer les données" (de toute façon lles seront supprimées au bout d'une heure
-
-gérer les "hint" et les "rafale" dans le listdata
-ajouter la note
-finir les vues
-enlever rtf et htm.py
+verifier la note par rapport au bug dans l'aide de wims+finir prise en compte s_t et s_n
 
 
 mode d'emploi pour le dossier .sheets
@@ -68,3 +61,51 @@ etc...
 
 dans class :
 ** si limitation horaires enregistrement des notes feuille 16 : info enregistrée dans le fichier ".16"
+
+
+Règle de calcul des feuilles de travail
+
+Le serveur calcule pour chaque exercice trois indicateurs du travail de chaque participant (l'indicateur de cumul (i 0), l'indicateur de réussite (i 1) et l'indicateur d'acquisition (i 2))
+ et une note de qualité q. Pour expliquer le calcul des différents indicateurs, supposons que le nombre de points requis sur un exercice est 10n où n est un entier et que l'élève a fait 
+ cet exercice p fois avec les scores x 1,x 2,x 3,...,x p (nombres entre 0 et 10).
+
+    L'indicateur de cumul (i 0) est la somme des scores plafonnée à 10n que l'on divise par 10n : i 0=110nmin(x 1+...+x p,10n). Il est affiché dans les résultats de l'élève comme un 
+	pourcentage.
+    Notons y 1≥y 2≥...≥y p les scores ordonnés par ordre décroissant. L'indicateur de réussite (i 1) est la moyenne des n meilleurs scores, divisé par 10 : i 1=110n(y 1+...+y n) 
+	si le nombre p de scores obtenus est supérieur à n et i 1=110n(y 1+...+y p) si le nombre p de scores obtenus est inférieur à n. Il est affiché ensuite comme un pourcentage.
+    L'indicateur d'acquisition (i 2) est le plus petit des n meilleurs scores 
+	divisé par 10 : i 2=0 si le nombre p de scores obtenus est inférieur à n et i 2=110y n si p≥n. 
+
+Par exemple, si n=2 et si les scores sont 7, 5 et 3 alors i 0=0.75 (75%), i 1=0.6 (60%) et i 2=0.5 (50%).
+
+La note de qualité est la moyenne pondérée et incrémentale des scores (c'est-à-dire que 
+le poids des derniers scores obtenus est plus important que celui des premiers). 
+Cet indicateur est corrigé en sanctionnant les essais sans réponse de la manière 
+suivante : si le nombre d'essais non terminés s n, est strictement supérieur à 5+2s t, 
+où s t est le nombre d'essais terminés (avec une note), la note de qualité est 
+multipliée par 2s ts n−4<1.
+
+Pour chaque feuille, le serveur calcule ensuite
+
+    la moyenne pondérée (I 0,I 1,I 2) sur tous les exercices de la feuille des 
+	i 0,i 1,i 2 correspondants avec comme coefficients de pondération 
+	le produit du poids de l'exercice et du nombre de points requis ;
+    la moyenne pondérée Q des q avec comme coefficients de pondération le produit du 
+	poids de l'exercice et de l'indicateur de cumul de l'élève i 0 pour cet exercice 
+	(ainsi, cela tient compte de la qualité de ce qui a été fait).
+
+Si la note de qualité est inférieure à 1 pour un exercice, l'indicateur i utilisé pour le calcul de chacun des indicateurs I est mis à 0 pour cet exercice ; si la note de 
+qualité est comprise entre 1 et 2, l'indicateur i utilisé pour le calcul de chacun des indicateurs I est divisé par 2.
+
+Les valeurs de Q,I 0,I 1,I 2 sont données sur chaque feuille dans la page de suivi individuel des étudiants.
+
+Le serveur calcule alors la note de la feuille suivant une règle de calcul que vous définissez (vous pouvez choisir la règle et l'indicateur I utilisé parmi I 0,I 1,I 2). 
+Voici les formules possibles :
+
+Règle	Formule	Explications
+0	10max(I,Q) 	maximum entre l'indicateur choisi et qualité.
+1	10I 	La qualité n'est pas prise en compte. Vous avez la note maximale lorsque l'indicateur choisi est maximal.
+2	10IQ 0.3 	La qualité n'a que peu d'effet sur la note.
+3	10IQ 0.5 	Plus d'effet de la qualité.
+4	10IQ 	Pour avoir une note de 10, il faut avoir tous les points demandés (100%) sans faire de faute (qualité=10).
+5	10I 2Q 	

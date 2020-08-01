@@ -1,58 +1,73 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="stylesheet" href="{{ url_for('static', filename='css/knacss.css') }}">
 		<link rel="stylesheet" href="{{ url_for('static', filename='css/wav.css') }}">
 		
-        <title>WimsActivityViewer</title>
-    </head>
+		<title>WimsActivityViewer</title>
+	</head>
 
-    <body>
-	<h3>Visualisation de  l'activité des élèves sur la feuille {{ feuille+1 }} :</h2>
-		<p>Voici le fichier d'analyse que vous avez demandé :
+	<body>
+	
+	<h3>Activité des élèves sur la feuille {{ feuille }} ({{ nom }}) :</h3>
+		<div id="flashed-messages" class="rouge">
+			{% for msg in get_flashed_messages() %}
+			<p> {{ msg }}</p>
+			{% endfor %}
+		</div>
+	
+		<p>Voici le fichier d'analyse que vous avez demandé (format odt, éditable par exemple avec LibreOffice) :
 			<a href="{{lien}}">Cliquez pour le télécharger.</a>
 		</p>
 		<form method="post" enctype="multipart/form-data">
 			Maintenant, vous pouvez : 
 			<div>
 				<input type="radio" name="page" value="accueil">
-				<label>Soumettre une autre sauvegrade de classe Wims.</label>
+				<label>Soumettre une autre sauvegarde de classe Wims.</label>
 			</div>
 			<div>
 				<input type="radio" name="page" value="feuille">
 				<label>Demander l'analyse d'une autre feuille de travail.</label>
 			</div>
+			<div>
+				<input type="radio" name="page" value="logout">
+				<label>Fermer cette session et supprimer toutes vos données de ce serveur (elles seront dans tous les cas supprimées d'ici une heure).</label>
+			</div>
 		<input type="submit" value="Valider">
 		</form>
-	<div>
-	{% for user in data %} 
-		<p><b>Travail sur Wims : </b>feuille n°{{ feuille+1 }}</p>
-		<p><b>Elève : </b>{{ user.firstname }} {{ user.lastname }}</p>
-		<p><b>Note :</b> {{ user.note }} /10 </p>
-		<p><b>Durée approximative de travail : </b>{{ user.h }} h {{ user.min }} min ... et sans doute plus de {{ user.sh }} h {{ user.smin }} min.</p>
-		<p><b>Légende : </b>Chaque tiret indique la visualisation d'un nouvel énoncé (un tiret long indique une recherche de plus de 5 minutes et 
-		un point une recherche de moins d'une minute).<br />
-		Chaque nombre indique un score obtenu.<br />
-		La <font color="green">couleur verte</font> indique que l'enregistrement des notes est désactivé.<br />
-		La <font color="red"><b>couleur rouge</b></font> indique que l'enregistrement des notes est activé.</p>
-		<ul>{% for i in range(user.listdata|length) %}
-			{% if user.listdata[i]|length > 0 %}
-				<li><b>Exercice n°{{i+1}}</b>
-				<ul>
-				{% for dict in user.listdata[i] %}
-					<li>Le {{ dict['date'] }} à partir de {{ dict['heure'] }} : 
-					{% for data in dict['data'] %}
-						<font color= "{{ data[0] }}"> {{ data[1] }} </font> 
+	
+	<p><br/><br/></p>
+	
+	<h3>Aperçu de l'activité des élèves sur la feuille {{ feuille }} :</h3>
+		<div>
+		{% for user in data %} 
+			<p><b>Travail sur Wims : </b>feuille n°{{ feuille }}</p>
+			<p><b>Elève : </b>{{ user.firstname }} {{ user.lastname }}</p>
+			<p><b>Note :</b> {{ user.note }} </p>
+			<p><b>Durée approximative de travail : </b>{{ user.h }} h {{ user.min }} min ... et sans doute plus de {{ user.sh }} h {{ user.smin }} min.</p>
+			<p><b>Légende : </b>Chaque tiret indique la visualisation d'un nouvel énoncé (un tiret long indique une recherche de plus de 5 minutes et 
+			un point une recherche de moins d'une minute).<br />
+			Chaque nombre indique un score obtenu.<br />
+			La <font color="green">couleur verte</font> indique que l'enregistrement des notes est désactivé.<br />
+			La <font color="red"><b>couleur rouge</b></font> indique que l'enregistrement des notes est activé.</p>
+			<ul>{% for i in range(user.listdata|length) %}
+				{% if user.listdata[i]|length > 0 %}
+					<li><b>Exercice n°{{i+1}}</b>
+					<ul>
+					{% for dict in user.listdata[i] %}
+						<li>Le {{ dict['date'] }} à partir de {{ dict['heure'] }} : 
+						{% for data in dict['data'] %}
+							<font color= "{{ data[0] }}"> {{ data[1] }} </font> 
+						{% endfor %}
+						</li>
 					{% endfor %}
+					</ul>
 					</li>
-				{% endfor %}
-				</ul>
-				</li>
-			{% endif %}
-		{% endfor %}</ul>
-		<b>Commentaires : </b>
-		<hr>
-	{% endfor %}
-	</div>
+				{% endif %}
+			{% endfor %}</ul>
+			<b>Commentaires : </b>
+			<hr>
+		{% endfor %}
+		</div>
