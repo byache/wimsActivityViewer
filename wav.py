@@ -37,6 +37,10 @@ def cleanAllData(duration=3600):
         if os.path.getmtime(os.path.join(app.config['UPLOAD_FOLDER'], s)) < t_limite :
             cleanData(s)
 
+@app.route('/help')
+def help():
+    return render_template('help.html')
+
 @app.route('/tmp/<session>/<titre>')
 def download_file(session,titre):
     uploads = os.path.join(app.config['UPLOAD_FOLDER'], session)
@@ -123,5 +127,5 @@ def main_function():
 
 application = app
 
-#if __name__ == '__main__':
-#    app.run(debug=True)
+if __name__ == '__main__':
+    app.run(debug=True)
