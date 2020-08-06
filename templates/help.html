@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/knacss.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/wav.css') }}">
+		
+        <title>WimsActivityViewer</title>
+    </head>
+
+    <body>
+		<h1>Visualisation de l'activité Wims</h1>
+		<hr>
+		<p><a href='/'>Retour</a>
+		</p>
+		<p>Pour utiliser cet outil, il vous faut avoir une classe virtuelle Wims.
+		<br/>Voir ici le site de l'université de Nice : <a href='https://wims.univ-cotedazur.fr/'>wims.univ-cotedazur.fr</a>
+		ou là celui d'Orsay : <a href='https://wims.auto.u-psud.fr/wims/'>wims.auto.u-psud.fr</a>
+		ou encore là celui de Marseille : <a href='https://wims.univ-mrs.fr/wims/'>wims.univ-mrs.fr</a>
+		<br/>Une <a href='https://wims.auto.u-psud.fr/wims/wims.cgi?lang=fr&+module=adm%2Flight&+phtml=mirror.phtml.fr'>
+		liste</a> des principaux serveurs Wims publics en France et dans le monde.</p>
+		<p>Il vous faut faire une sauvegarde de votre classe au format zip : 
+		<br/>Quand vous êtes connecté à l'intérieur de votre classe, allez dans :
+		<br/>Configuration -> Config/Maintenance
+		<br/>puis dans :
+		<br/>-> Sauvegarde et restauration
+		<br/>Choisissez une sauvegarde au format zip. La déclaration auprès de la CNIL 
+		impose de ne pas conserver cette sauvegarde plus d'an an. Sur ce serveur, les données ne resteront pas plus d'une heure.
+		<p><a href='/'>Retour</a>
+		</p>
+    </body>
+</html>
+
+
+
