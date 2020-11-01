@@ -116,7 +116,7 @@ def main_function():
         flash("Vos données ont été supprimées du serveur. Au revoir et à bientôt.")
         return redirect(request.url)
     elif page == 'result':
-        feuille = int(request.form['feuille'])+1
+        feuille = int(request.form['feuille'])
         dtfct = data_factory(zipname,feuille,dirpath)
         if dtfct[0]=='error':
             flash(dtfct[1])
