@@ -197,7 +197,7 @@ def createodt(file,data,feuille,dirpath):
 		
 		p = P(stylename=pb)
 		textdoc.text.addElement(p)
-	titre = 'WimsActivityViewer_feuille_'+str(feuille+1)+'.odt'
+	titre = 'WimsActivityViewer_feuille_'+str(feuille)+'.odt'
 	titre = os.path.join(dirpath,titre)
 	textdoc.save(titre)
 	return titre
