@@ -42,11 +42,13 @@ def fsheets(file):
 	with ZipFile(file) as myzip:
 		file2 = myzip.read('class/sheets/.sheets')
 		file2 = file2.decode('latin1').split('\n:')
-		res = []
+		res = {}
+		i=0
 		for sh in file2:
-			if len(sh)>2:
+			if len(sh)>2 and sh[0]!= "0":
 				titre = sh.split('\n')[2]
-				res += [titre]
+				res[i] = titre
+			i+=1
 	return res
 
 def createodt(file,data,feuille,dirpath):
@@ -218,11 +220,10 @@ def data_factory(file,feuille,dirpath):  #file : le fichier .zip contenant l'arc
 		with ZipFile(file) as myzip:
 			try:
 				content = myzip.read('class/score/' + login).decode('utf8').replace('  ', ' ').split('\n')
+				content.pop()  # enlève le dernier élément (une ligne vide)
 			except:
-				pass
-		#content = content.decode('utf8').replace('  ', ' ')
-		#content = content.split('\n')
-		content.pop()  # enlève le dernier élément (une ligne vide)
+				content = []
+		
 			
 	
 		#données à envoyer à la vue pour affichage (on se limite à 50 exos)
@@ -285,7 +286,7 @@ def data_factory(file,feuille,dirpath):  #file : le fichier .zip contenant l'arc
 					sn[exo-1]+=1
 				if(line.type == "score"):
 					
-					c = str(int(line.score)) + " "
+					c = " "+str(int(line.score)) + " "
 					listscores[exo-1] += [line.score]
 					if (line.sc):
 						st[exo-1]+=1
