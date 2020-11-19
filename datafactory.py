@@ -108,7 +108,7 @@ def createodt(file,data,feuille,dirpath):
 		p = P()
 		part = Span(stylename=b, text = "Bilan du travail sur Wims : ")
 		p.addElement(part)
-		part = Span(text = "feuille n°"+str(feuille)+" ("+fsheets(file)[feuille-1]+")")
+		part = Span(text = "feuille n°"+str(feuille)+" ("+fsheets(file)[feuille]+")")
 		p.addElement(part)      
 		textdoc.text.addElement(p)
 		
@@ -325,5 +325,5 @@ def data_factory(file,feuille,dirpath):  #file : le fichier .zip contenant l'arc
 	lien = createodt(file,data,feuille,dirpath)
 		
 	
-	return render_template('resultat.html', feuille=feuille, data=data, lien=lien, nom=fsheets(file)[feuille-1])
+	return render_template('resultat.html', feuille=feuille, data=data, lien=lien, nom=fsheets(file)[feuille])
 
