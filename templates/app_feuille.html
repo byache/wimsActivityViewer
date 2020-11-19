@@ -5,7 +5,7 @@
 		{% for key,feuille in feuilles.items() %}
 		<div>
 			<input type="radio" name="feuille" value={{ key }}>
-			<label>{{ key }} {{ feuille }}</label>
+			<label>{{ key }} {{ feuille|safe }}</label>
 		</div>
 		{% endfor %}
 		<input type="hidden" name="page" value="result">
