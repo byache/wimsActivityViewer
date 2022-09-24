@@ -44,7 +44,7 @@ def help():
 @app.route('/tmp/<session>/<titre>')
 def download_file(session,titre):
 	uploads = os.path.join(app.config['UPLOAD_FOLDER'], session)
-	return send_from_directory(directory=uploads, path=titre, as_attachment=True)
+	return send_from_directory(directory=uploads, filename=titre)
 
 @app.route('/', methods=['GET', 'POST'])
 def main_function():
