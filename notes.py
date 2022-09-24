@@ -50,10 +50,10 @@ def preparescore(feuille,file):
 	with ZipFile(file) as myzip:
 		weights = myzip.read('class/sheets/.weight')
 		weights = weights.decode('utf8').split('\n')[feuille-1]
-		weights = weights.split(' ') #on a une liste des coeff de pondération des exos de la feuille feuille
+		weights = weights[1:].split(' ') #on a une liste des coeff de pondération des exos de la feuille feuille
 		requires = myzip.read('class/sheets/.require')
 		requires = requires.decode('utf8').split('\n')[feuille-1]
-		requires = requires[1;].split(' ') #on a une liste des points requis pour chaque exo de la feuille feuille
+		requires = requires[1:].split(' ') #on a une liste des points requis pour chaque exo de la feuille feuille
 	with ZipFile(file) as myzip:
 		sev = myzip.read('class/sheets/.severity')
 		sev = sev.decode('utf8').split('\n')
