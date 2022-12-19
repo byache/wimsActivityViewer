@@ -6,7 +6,9 @@
 Cette app permet de visualiser facilement l'activité des participants à une classe virtuelle Wims 
 (voir [ici](https://wims.univ-mrs.fr/wims/) ou [là](https://wimsedu.info/))
 
-Hébergé sur alwaydata : [http://wimsactivityviewer.alwaysdata.net/](http://wimsactivityviewer.alwaysdata.net/)
+Hébergé ici : [http://wimsactivityviewer.byache.fr/](http://wimsactivityviewer.byache.fr/)
+
+Hébergement de secours sur alwaydata : [http://wimsactivityviewer.alwaysdata.net/](http://wimsactivityviewer.alwaysdata.net/)
 
 
 ## Déploiement local
