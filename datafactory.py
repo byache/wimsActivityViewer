@@ -49,6 +49,13 @@ def fsheets(file):
 				titre = sh.split('\n')[2]
 				res[i] = titre
 			i+=1
+		file2 = myzip.read('class/exams/.exams')
+		file2 = file2.decode('latin1').split('\n:')
+		for sh in file2:
+			if len(sh)>2 and sh[0]!= "0":
+				titre = 'examen '+sh.split('\n')[3]
+				res[i] = titre
+			i+=1
 	return res
 
 def createodt(file,data,feuille,dirpath):
