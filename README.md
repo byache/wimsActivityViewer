@@ -13,7 +13,7 @@ Hébergement de secours sur alwaydata : [http://wimsactivityviewer.alwaysdata.ne
 
 ## Déploiement local
 
-1. créer un environement virtuel python: `virtualenv -P python3 venv`
+1. créer un environement virtuel python: `virtualenv venv`
 2. l'activer: `source venv/bin/activate`
 3. cloner le dépot git: `git clone https://github.com/byache/wimsActivityViewer.git`
 4. se placer dans le dossier du dépot: `cd wimsActivityViewer`
