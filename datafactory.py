@@ -37,7 +37,7 @@ def crlist(file):
 
 	
 def fsheets(file):
-	""" Va chercher la liste des titres des feuilles
+	""" Va chercher la liste des titres des feuilles et des examens
 	"""
 	with ZipFile(file) as myzip:
 		file2 = myzip.read('class/sheets/.sheets')
@@ -53,7 +53,7 @@ def fsheets(file):
 		file2 = file2.decode('latin1').split('\n:')
 		for sh in file2:
 			if len(sh)>2 and sh[0]!= "0":
-				titre = 'examen '+sh.split('\n')[3]
+				titre = 'examen : '+sh.split('\n')[3]
 				res[i] = titre
 			i+=1
 	return res
@@ -219,6 +219,11 @@ def data_factory(file,feuille,dirpath):  #file : le fichier .zip contenant l'arc
 	except:
 		return 'error',"Vous devez renvoyer l'archive de votre classe car elle a été supprimée du serveur."
 
+	#teste s'il faut analyser un examen ou une feuille
+	if 'examen' in feuille :
+		return 'ok'
+	else :
+		feuille=int(feuille.split(':')[0])
 	prepare = preparescore(feuille,file)
 	nbex = len(prepare[0])
 	for i in range(len(data)):
@@ -321,7 +326,7 @@ def data_factory(file,feuille,dirpath):  #file : le fichier .zip contenant l'arc
 		sstotale = sdureetotale % 3600
 		user.smin = sstotale // 60
 		
-		#flash(login)
+		#flash(feuille)
 		#flash(prepare)
 		#flash(sn)
 		#flash(st)
