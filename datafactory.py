@@ -58,6 +58,7 @@ def fsheets(file):
 			i+=1
 	return res
 
+
 def createodt(file,data,feuille,dirpath):
 
 	textdoc = OpenDocumentText()
@@ -224,18 +225,17 @@ def data_factory(file,feuille,dirpath):  #file : le fichier .zip contenant l'arc
 		return 'ok'
 	else :
 		feuille=int(feuille.split(':')[0])
-	prepare = preparescore(feuille,file)
-	nbex = len(prepare[0])
-	for i in range(len(data)):
-		user = data[i]
-		login = user.login
-		with ZipFile(file) as myzip:
-			try:
-				content = myzip.read('class/score/' + login).decode('utf8').replace('  ', ' ').split('\n')
-				content.pop()  # enlève le dernier élément (une ligne vide)
-			except:
-				content = []
-		
+		prepare = preparescore(feuille,file)
+		nbex = len(prepare[0])
+		for i in range(len(data)):
+			user = data[i]
+			login = user.login
+			with ZipFile(file) as myzip:
+				try:
+					content = myzip.read('class/score/' + login).decode('utf8').replace('  ', ' ').split('\n')
+					content.pop()  # enlève le dernier élément (une ligne vide)
+				except:
+					content = []
 			
 	
 		#données à envoyer à la vue pour affichage (on se limite à 50 exos)
@@ -255,7 +255,6 @@ def data_factory(file,feuille,dirpath):  #file : le fichier .zip contenant l'arc
 		
 		for numline in range(len(content)):
 			line = LigneLog(content[numline])
-
 			if(line.sheet == feuille):
 				exo = line.exercise
 				if(exo > len(listdata)): #il y avait plus de 50 exos dans la feuille mettre un message d'erreur sur la page ?
@@ -326,10 +325,9 @@ def data_factory(file,feuille,dirpath):  #file : le fichier .zip contenant l'arc
 		sstotale = sdureetotale % 3600
 		user.smin = sstotale // 60
 		
-		#flash(feuille)
-		#flash(prepare)
+		
 		#flash(sn)
-		#flash(st)
+		#flash(line.sheet)
 		#flash(listscores)
 		#flash('**')
 		user.note=computescore(listscoresnote,prepare,sn,st)
