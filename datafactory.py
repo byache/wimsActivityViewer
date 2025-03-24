@@ -226,11 +226,24 @@ def data_factory(file,feuille,dirpath):  #file : le fichier .zip contenant l'arc
 
 	#teste s'il faut analyser un examen ou une feuille
 	if 'examen' in feuille :
+		#feuille est le numéro dans la liste "liste des feuilles, liste des examens"
+		#examen est le numéro de l'examen
 		feuille,examen=int(feuille.split(':')[0]),feuille.split(':')[1]
 		examen=int(examen.replace('examen','').replace('&nbsp;',''))
 		flash(feuille)
 		flash(examen)
+			
+		line = LigneLogExam('E20241014.19:25:34 BG094BEA8D  3  3 score 10  	2.9.112.193	')
+		flash(line.date)
+		flash(line.time)
+		flash(line.timetext)
+		flash(line.type)
+		flash(line.session)
+		flash(line.exam)
+		flash(line.exercise)
+		flash(line.score)
 	else :
+		#feuille est le numéro de la feuille
 		feuille=feuille.split(':')[1]
 		feuille=int(feuille.replace('feuille','').replace('&nbsp;',''))
 		prepare = preparescore(feuille,file)
