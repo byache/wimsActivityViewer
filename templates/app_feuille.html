@@ -2,10 +2,10 @@
 	<h3>Sélection de la feuille de travail Wims</h2>
 	<p>Choisissez une feuille de travail :</p>
 	<form method="post" enctype="multipart/form-data">
-		{% for key,feuille in feuilles.items() %}
+		{% for key,txt in feuilles.items() %}
 		<div>
-			<input type="radio" name="feuille" value={{ key }}:{{ feuille|safe }}>
-			<label>{{ key }} {{ feuille|safe }}</label>
+			<input type="radio" name="feuille" value={{ key }}:{{ txt }}>
+			<label>{{ txt|safe }}</label>
 		</div>
 		{% endfor %}
 		<input type="hidden" name="page" value="result">

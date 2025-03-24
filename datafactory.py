@@ -44,22 +44,26 @@ def fsheets(file):
 		file2 = file2.decode('latin1').split('\n:')
 		res = {}
 		i=0
+		j=0
 		for sh in file2:
 			if len(sh)>2 and sh[0]!= "0":
-				titre = sh.split('\n')[2]
+				titre = 'feuille&nbsp;'+str(j)+'&nbsp;:&nbsp;'+sh.split('\n')[2]
 				res[i] = titre
 			i+=1
+			j+=1
 		file2 = myzip.read('class/exams/.exams')
 		file2 = file2.decode('latin1').split('\n:')
+		j=0
 		for sh in file2:
 			if len(sh)>2 and sh[0]!= "0":
-				titre = 'examen : '+sh.split('\n')[3]
+				titre = 'examen&nbsp;'+str(j)+'&nbsp;:&nbsp;'+sh.split('\n')[3]
 				res[i] = titre
 			i+=1
+			j+=1
 	return res
 
 
-def createodt(file,data,feuille,dirpath):
+def createodt(file,data,feuille,nom,dirpath):
 
 	textdoc = OpenDocumentText()
 	textdoc.fontfacedecls.addElement(FontFace(name="Arial",fontfamily="Arial",fontfamilygeneric="swiss",fontpitch="variable"))
@@ -116,7 +120,7 @@ def createodt(file,data,feuille,dirpath):
 		p = P()
 		part = Span(stylename=b, text = "Bilan du travail sur Wims : ")
 		p.addElement(part)
-		part = Span(text = "feuille n°"+str(feuille)+" ("+fsheets(file)[feuille]+")")
+		part = Span(text = nom)
 		p.addElement(part)      
 		textdoc.text.addElement(p)
 		
@@ -222,9 +226,13 @@ def data_factory(file,feuille,dirpath):  #file : le fichier .zip contenant l'arc
 
 	#teste s'il faut analyser un examen ou une feuille
 	if 'examen' in feuille :
-		return 'ok'
+		feuille,examen=int(feuille.split(':')[0]),feuille.split(':')[1]
+		examen=int(examen.replace('examen','').replace('&nbsp;',''))
+		flash(feuille)
+		flash(examen)
 	else :
-		feuille=int(feuille.split(':')[0])
+		feuille=feuille.split(':')[1]
+		feuille=int(feuille.replace('feuille','').replace('&nbsp;',''))
 		prepare = preparescore(feuille,file)
 		nbex = len(prepare[0])
 		for i in range(len(data)):
@@ -238,102 +246,106 @@ def data_factory(file,feuille,dirpath):  #file : le fichier .zip contenant l'arc
 					content = []
 			
 	
-		#données à envoyer à la vue pour affichage (on se limite à 50 exos)
-		listsession=[[] for i in range(nbex)] #un élément par exo. Cet élément va contenir une liste de dates de sessions
-		listdata=[[] for i in range(nbex)] #un élément par exo. Cet élément va contenir une liste de données à afficher
-		listscores=[[] for i in range(nbex)] #un élément par exo. Cet élément va contenir la liste des scores obtenus à cet exo, dans l'ordre
-		listscoresnote=[[] for i in range(nbex)] #un élément par exo. Cet élément va contenir la liste des scores à prendre en compte pour la note
-		
-		ses=[" "]*nbex #mémoire du numéro de la session en cours exo par exo
-		dur=[0]*nbex #tps de travail exo par exo
-		durmin=[0]*nbex #tps de travail aboutissant à un score 
-		
-		#st : nombre d'essais terminés de l'exos (aboutissant à une note)
-		#sn : nombre d'essais total(nombre de génération d'énoncés)
-		st=[0]*nbex
-		sn=[0]*nbex
-		
-		for numline in range(len(content)):
-			line = LigneLog(content[numline])
-			if(line.sheet == feuille):
-				exo = line.exercise
-				if(exo > len(listdata)): #il y avait plus de 50 exos dans la feuille mettre un message d'erreur sur la page ?
-					print(
-						"Attention : exercices non pris en compte car la taille de listelog se limite à " +
-						len(listelog) +
-						" exercices...")
+			#données à envoyer à la vue pour affichage (on se limite à 50 exos)
+			listsession=[[] for i in range(nbex)] #un élément par exo. Cet élément va contenir une liste de dates de sessions
+			listdata=[[] for i in range(nbex)] #un élément par exo. Cet élément va contenir une liste de données à afficher
+			listscores=[[] for i in range(nbex)] #un élément par exo. Cet élément va contenir la liste des scores obtenus à cet exo, dans l'ordre
+			listscoresnote=[[] for i in range(nbex)] #un élément par exo. Cet élément va contenir la liste des scores à prendre en compte pour la note
+			
+			ses=[" "]*nbex #mémoire du numéro de la session en cours exo par exo
+			dur=[0]*nbex #tps de travail exo par exo
+			durmin=[0]*nbex #tps de travail aboutissant à un score 
+			
+			#st : nombre d'essais terminés de l'exos (aboutissant à une note)
+			#sn : nombre d'essais total(nombre de génération d'énoncés)
+			st=[0]*nbex
+			sn=[0]*nbex
+			
+			for numline in range(len(content)):
+				line = LigneLog(content[numline])
+				if(line.sheet == feuille):
+					exo = line.exercise
+					if(exo > len(listdata)): #il y avait plus de 50 exos dans la feuille mettre un message d'erreur sur la page ?
+						print(
+							"Attention : exercices non pris en compte car la taille de listelog se limite à " +
+							len(listelog) +
+							" exercices...")
+							
+					#calcul du temps de travail
+					if numline + 1 < len(content):
+						line2 = LigneLog(content[numline + 1])
+						duree = 0
+						#si la ligne d'après existe et a le même numéro de session, on comptabilise du temps de travail jusque là
+						if line2.session == line.session:
+							duree = int(line2.time - line.time)
+					dureescore = 0
+					#si l'élève a eu un score, on comptabilise du temps de travail aboutissant à un score
+					if numline > 0 and line.type=='score' :
+						line1 = LigneLog(content[numline - 1])
+						if line1.session == line.session:
+							dureescore = int(line.time - line1.time)
+
+
+					if str(line.session) != str(ses[exo - 1]): #on a changé de session
+						ses[exo - 1] = line.session 
+						listdata[exo - 1].append({'date' : line.date ,  'heure' : line.timetext ,'data' : []}) #listdata[j] contient la liste des {date,heure de début,données d'activité} des sessions sur l'exo j+1
+					color = "green"
+					if(line.sc):
+						color = "red" #couleur rouge si le score est activé, verte sinon
+					c=" -" #tiret court
+					if 'hint' in line.type:
+						c=" a"
+					elif 'rafale' in line.type:
+						c=" rafale"
+					elif duree<60:
+						c=" ·" #point si recherche de moins d'une minute
+					elif duree>300:
+						c=" –" #tiret long si recherche de plus de 5 minutes
+					if 'new' in line.type and line.sc:
+						sn[exo-1]+=1
+					if(line.type == "score"):
 						
-				#calcul du temps de travail
-				if numline + 1 < len(content):
-					line2 = LigneLog(content[numline + 1])
-					duree = 0
-					#si la ligne d'après existe et a le même numéro de session, on comptabilise du temps de travail jusque là
-					if line2.session == line.session:
-						duree = int(line2.time - line.time)
-				dureescore = 0
-				#si l'élève a eu un score, on comptabilise du temps de travail aboutissant à un score
-				if numline > 0 and line.type=='score' :
-					line1 = LigneLog(content[numline - 1])
-					if line1.session == line.session:
-						dureescore = int(line.time - line1.time)
+						c = " "+str(int(line.score)) + " "
+						listscores[exo-1] += [line.score]
+						if (line.sc):
+							st[exo-1]+=1
+							listscoresnote[exo-1] += [line.score]
+						durmin[exo-1] += dureescore 
+					dur[exo-1] += duree 
+					listdata[exo - 1][-1]['data'].append([color,c]) #les données d'activités sont une liste de couples "couleur,caractère / score"
 
+			#listsession = [x for x in listsession if x] #permet d'enlever tous les éléments vides []...
+			#listdata = [x for x in listdata if x] #permet d'enlever tous les éléments vides []...
+			#listscores = [x for x in listscores if x] #permet d'enlever tous les éléments vides []...
+			
+			user.listdata = listdata
+			dureetotale = 0
+			for duree in dur:
+				dureetotale += duree
+			user.h = dureetotale // 3600
+			stotale = dureetotale % 3600
+			user.min = stotale // 60
 
-				if str(line.session) != str(ses[exo - 1]): #on a changé de session
-					ses[exo - 1] = line.session 
-					listdata[exo - 1].append({'date' : line.date ,  'heure' : line.timetext ,'data' : []}) #listdata[j] contient la liste des {date,heure de début,données d'activité} des sessions sur l'exo j+1
-				color = "green"
-				if(line.sc):
-					color = "red" #couleur rouge si le score est activé, verte sinon
-				c=" -" #tiret court
-				if 'hint' in line.type:
-					c=" a"
-				elif 'rafale' in line.type:
-					c=" rafale"
-				elif duree<60:
-					c=" ·" #point si recherche de moins d'une minute
-				elif duree>300:
-					c=" –" #tiret long si recherche de plus de 5 minutes
-				if 'new' in line.type and line.sc:
-					sn[exo-1]+=1
-				if(line.type == "score"):
-					
-					c = " "+str(int(line.score)) + " "
-					listscores[exo-1] += [line.score]
-					if (line.sc):
-						st[exo-1]+=1
-						listscoresnote[exo-1] += [line.score]
-					durmin[exo-1] += dureescore 
-				dur[exo-1] += duree 
-				listdata[exo - 1][-1]['data'].append([color,c]) #les données d'activités sont une liste de couples "couleur,caractère / score"
-
-		#listsession = [x for x in listsession if x] #permet d'enlever tous les éléments vides []...
-		#listdata = [x for x in listdata if x] #permet d'enlever tous les éléments vides []...
-		#listscores = [x for x in listscores if x] #permet d'enlever tous les éléments vides []...
-		
-		user.listdata = listdata
-		dureetotale = 0
-		for duree in dur:
-			dureetotale += duree
-		user.h = dureetotale // 3600
-		stotale = dureetotale % 3600
-		user.min = stotale // 60
-
-		sdureetotale = 0
-		for duree in durmin:
-			sdureetotale += duree
-		user.sh = sdureetotale // 3600
-		sstotale = sdureetotale % 3600
-		user.smin = sstotale // 60
-		
-		
-		#flash(sn)
-		#flash(line.sheet)
-		#flash(listscores)
-		#flash('**')
-		user.note=computescore(listscoresnote,prepare,sn,st)
+			sdureetotale = 0
+			for duree in durmin:
+				sdureetotale += duree
+			user.sh = sdureetotale // 3600
+			sstotale = sdureetotale % 3600
+			user.smin = sstotale // 60
+			
+			
+			#flash(sn)
+			#flash(line.sheet)
+			#flash(listscores)
+			#flash('**')
+			user.note=computescore(listscoresnote,prepare,sn,st)
 	
-	lien = createodt(file,data,feuille,dirpath)
-		
+	nom = fsheets(file)[feuille]
+	if nom[0]=='f' :
+		nom = 'la '+nom
+	else :
+		nom = "l'"+nom
+	lien = createodt(file,data,feuille,nom,dirpath)
 	
-	return render_template('resultat.html', feuille=feuille, data=data, lien=lien, nom=fsheets(file)[feuille])
+	return render_template('resultat.html', feuille=feuille, data=data, lien=lien, nom=nom)
 

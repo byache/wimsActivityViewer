@@ -11,7 +11,7 @@
 
 	<body>
 	
-	<h3>Activité des élèves sur la feuille {{ feuille }} ({{ nom }}) :</h3>
+	<h3>Activité des élèves sur {{ nom|safe }}</h3>
 		<div id="flashed-messages" class="rouge">
 			{% for msg in get_flashed_messages() %}
 			<p> {{ msg }}</p>
@@ -40,10 +40,10 @@
 	
 	<p><br/><br/></p>
 	
-	<h3>Aperçu de l'activité des élèves sur la feuille {{ feuille }} :</h3>
+	<h3>Aperçu de l'activité des élèves sur {{ nom|safe }}</h3>
 		<div>
 		{% for user in data %} 
-			<p><b>Travail sur Wims : </b>feuille n°{{ feuille }}</p>
+			<p><b>Wims : </b>travail sur {{ nom|safe }}</p>
 			<p><b>Elève : </b>{{ user.firstname }} {{ user.lastname }}</p>
 			<p><b>Note :</b> {{ user.note }} </p>
 			<p><b>Durée approximative de travail : </b>{{ user.h }} h {{ user.min }} min ... et sans doute plus de {{ user.sh }} h {{ user.smin }} min.</p>
