@@ -217,32 +217,101 @@ def createodt(file,data,feuille,nom,dirpath):
 	return titre
 
 #fonction principale, qui lit les données brutes, re-calcule la note de wims, génère un fichier odt et le contenu de la vue html
-def data_factory(file,feuille,dirpath):  #file : le fichier .zip contenant l'archive de la classe wims ; feuille : un integer contenant le numéro de la feuille wims à regarder
+def data_factory(file,feuille,dirpath):  
+	#file : le fichier .zip contenant l'archive de la classe wims ; feuille : un integer contenant le numéro de la feuille wims à regarder
 	data = crlist(file)
 	try:
 		data = crlist(file)
 	except:
 		return 'error',"Vous devez renvoyer l'archive de votre classe car elle a été supprimée du serveur."
 
-	#teste s'il faut analyser un examen ou une feuille
+	#s'il faut analyser un examen
 	if 'examen' in feuille :
+		page='resultatexam.html'
 		#feuille est le numéro dans la liste "liste des feuilles, liste des examens"
 		#examen est le numéro de l'examen
 		feuille,examen=int(feuille.split(':')[0]),feuille.split(':')[1]
 		examen=int(examen.replace('examen','').replace('&nbsp;',''))
-		flash(feuille)
-		flash(examen)
+		for i in range(len(data)):
+			flash('***')
+			user = data[i]
+			login = user.login
+			tempsmini=0 #va contenir la somme des duree entre new et score
+			tempsmaxi=0 #va contenir la somme des durées des sessions
+			with ZipFile(file) as myzip:
+				try:
+					content = myzip.read('class/noscore/' + login).decode('utf8').replace('  ', ' ').split('\n')
+					content.pop()  # enlève le dernier élément (une ligne vide) --> à vérifier
+				except:
+					content = []
 			
-		line = LigneLogExam('E20241014.19:25:34 BG094BEA8D  3  3 score 10  	2.9.112.193	')
-		flash(line.date)
-		flash(line.time)
-		flash(line.timetext)
-		flash(line.type)
-		flash(line.session)
-		flash(line.exam)
-		flash(line.exercise)
-		flash(line.score)
+			#données à envoyer à la vue pour affichage (on se limite à 50 sessions d'examen et à 50 exos par examen)
+			nbses = 50 #(nombre de sessions max prises en compte pour cet examen) --> à affiner en récupérant le vrai nombre de sessions ?
+			listsession=[[] for i in range(nbses)] #un élément par session. Cet élément va contenir une liste "nom,date,heure de sessions"
+			
+			ses=" " #mémoire du numéro de la session en cours
+			j=-1 #compteur des sessions
+			debses=0 #pour l'heure de debut de session
+			c="" #c va contenir un symbole montrant le temps de travail
+			for numline in range(len(content)):
+				line = LigneLogExam(content[numline])
+				if(line.exam == examen):
+					exo = line.exercise
+					if(exo > len(listsession)): #il y avait plus de 50 exos dans la feuille mettre un message d'erreur sur la page ?
+						print(
+							"Attention : exercices non pris en compte car le nombre maximum se limite à " +
+							len(listsession) +
+							" exercices...")
+
+					if str(line.session) != str(ses): #on a changé de session
+						j+=1
+						ses = line.session 
+						debses=line.time
+						listsession[j].append({'date' : line.date ,  'heure' : line.timetext ,'exos':[0]*nbses,'data' :[0]*nbses}) 
+						#listsession[j] contient la liste des {date,heure de début,liste des références des exos,données d'activité} des sessions sur la session j
+					if(line.type == "new"):
+						listsession[j][-1]['exos'][line.exercise-1]=line.ref
+						if numline<len(content)-1:
+							line2 = LigneLogExam(content[numline + 1])
+							if str(line2.session)==str(ses):
+								duree=int(line2.time - line.time)
+								tempsmini+=duree
+								c="·"*int(duree/60) #un point par minute
+								c+=" X "
+								flash(c)
+					if(line.type == "score"):
+						c=c.replace("X",str(int(line.score))+", ")
+						flash(c)
+						listsession[j][-1]['data'][line.exercise-1]=[line.score,c] #les données d'activités sont une liste de couples "couleur,caractère / score"
+						if numline<len(content)-1:
+							line2 = LigneLogExam(content[numline + 1])
+							if str(line2.session) != str(ses): #on va changer de session à la requête suivante : il faut finaliser la duree de cette session
+								dureeses=int(line.time-debses)
+								tempsmaxi+=dureeses
+						else : #on est à la dernière requête
+							dureeses=int(line.time-debses)
+							tempsmaxi+=dureeses
+							
+			user.listdata = listsession
+			user.h = tempsmini // 3600
+			stotale = tempsmini % 3600
+			user.min = stotale // 60
+			user.sh = tempsmaxi // 3600
+			stotale = tempsmaxi % 3600
+			user.smin = stotale // 60
+			user.note=2		
+		#line = LigneLogExam('E20241014.19:25:34 BG094BEA8D  3  3 score 10  	2.9.112.193	')
+		#flash(line.date)
+		#flash(line.time)
+		#flash(line.timetext)
+		#flash(line.type)
+		#flash(line.session)
+		#flash(line.exam)
+		#flash(line.exercise)
+		#flash(line.score)
 	else :
+		page='resultat.html'
+		#s'il faut analyser un examen ou une feuille
 		#feuille est le numéro de la feuille
 		feuille=feuille.split(':')[1]
 		feuille=int(feuille.replace('feuille','').replace('&nbsp;',''))
@@ -261,7 +330,7 @@ def data_factory(file,feuille,dirpath):  #file : le fichier .zip contenant l'arc
 	
 			#données à envoyer à la vue pour affichage (on se limite à 50 exos)
 			listsession=[[] for i in range(nbex)] #un élément par exo. Cet élément va contenir une liste de dates de sessions
-			listdata=[[] for i in range(nbex)] #un élément par exo. Cet élément va contenir une liste de données à afficher
+			listdata=[None]*nbex #un élément par exo. Cet élément va contenir une liste de données à afficher
 			listscores=[[] for i in range(nbex)] #un élément par exo. Cet élément va contenir la liste des scores obtenus à cet exo, dans l'ordre
 			listscoresnote=[[] for i in range(nbex)] #un élément par exo. Cet élément va contenir la liste des scores à prendre en compte pour la note
 			
@@ -280,8 +349,8 @@ def data_factory(file,feuille,dirpath):  #file : le fichier .zip contenant l'arc
 					exo = line.exercise
 					if(exo > len(listdata)): #il y avait plus de 50 exos dans la feuille mettre un message d'erreur sur la page ?
 						print(
-							"Attention : exercices non pris en compte car la taille de listelog se limite à " +
-							len(listelog) +
+							"Attention : exercices non pris en compte car le nombre maximum se limite à " +
+							len(listdata) +
 							" exercices...")
 							
 					#calcul du temps de travail
@@ -301,7 +370,7 @@ def data_factory(file,feuille,dirpath):  #file : le fichier .zip contenant l'arc
 
 					if str(line.session) != str(ses[exo - 1]): #on a changé de session
 						ses[exo - 1] = line.session 
-						listdata[exo - 1].append({'date' : line.date ,  'heure' : line.timetext ,'data' : []}) #listdata[j] contient la liste des {date,heure de début,données d'activité} des sessions sur l'exo j+1
+						listdata[exo - 1]={'date' : line.date ,  'heure' : line.timetext ,'data' : []} #listdata[j] contient le dictionnaire {date,heure de début,données d'activité} des sessions sur l'exo j+1
 					color = "green"
 					if(line.sc):
 						color = "red" #couleur rouge si le score est activé, verte sinon
@@ -325,13 +394,14 @@ def data_factory(file,feuille,dirpath):  #file : le fichier .zip contenant l'arc
 							listscoresnote[exo-1] += [line.score]
 						durmin[exo-1] += dureescore 
 					dur[exo-1] += duree 
-					listdata[exo - 1][-1]['data'].append([color,c]) #les données d'activités sont une liste de couples "couleur,caractère / score"
+					listdata[exo - 1]['data'].append([color,c]) #les données d'activités sont une liste de couples "couleur,caractère / score"
 
 			#listsession = [x for x in listsession if x] #permet d'enlever tous les éléments vides []...
 			#listdata = [x for x in listdata if x] #permet d'enlever tous les éléments vides []...
 			#listscores = [x for x in listscores if x] #permet d'enlever tous les éléments vides []...
 			
 			user.listdata = listdata
+			flash(listdata)
 			dureetotale = 0
 			for duree in dur:
 				dureetotale += duree
@@ -358,7 +428,7 @@ def data_factory(file,feuille,dirpath):  #file : le fichier .zip contenant l'arc
 		nom = 'la '+nom
 	else :
 		nom = "l'"+nom
-	lien = createodt(file,data,feuille,nom,dirpath)
-	
-	return render_template('resultat.html', feuille=feuille, data=data, lien=lien, nom=nom)
+	#lien = createodt(file,data,feuille,nom,dirpath)
+	lien='ok'
+	return render_template(page, feuille=feuille, data=data, lien=lien, nom=nom)
 

@@ -51,14 +51,10 @@ class LigneLogExam:
 	# chaque ligne de log devient un objet
 	def __init__(self, lineraw):
 		# ligne raw designe la ligne "brute"
-		lineraw = lineraw + '\t'
-		lineraw = lineraw.split('\t')
+		lineraw = lineraw.split()
 		lineraw=[x for x in lineraw if x] #pour enlever tout les éléments "falsy" du genre '' ou encore []
-
 		#self.IP = lineraw[1] on n'enregistre pas l'ip par souci de confidentialité
-		lineraw = lineraw[0].split(' ')
 		lineraw=[x for x in lineraw if x] #pour enlever tout les éléments "falsy" du genre '' ou encore []
-
 		dateraw = lineraw[0].split('.')
 		dateraw2 = dateraw[0][1:] #pour enlever le premier caractère qui est un "E"
 		self.date = dateraw2[6:8] + "/" + dateraw2[4:6] + \
@@ -72,6 +68,9 @@ class LigneLogExam:
 		
 		self.exercise = int(lineraw[3])
 		self.type = lineraw[4]
+		self.ref =''
+		if(lineraw[4] == "new"):
+			self.ref = str(lineraw[7])
 		self.score = 0
 		if(lineraw[4] == "score"):
 			self.score = float(lineraw[5])
