@@ -233,7 +233,6 @@ def data_factory(file,feuille,dirpath):
 		feuille,examen=int(feuille.split(':')[0]),feuille.split(':')[1]
 		examen=int(examen.replace('examen','').replace('&nbsp;',''))
 		for i in range(len(data)):
-			flash('***')
 			user = data[i]
 			login = user.login
 			tempsmini=0 #va contenir la somme des duree entre new et score
@@ -248,7 +247,7 @@ def data_factory(file,feuille,dirpath):
 			#données à envoyer à la vue pour affichage (on se limite à 50 sessions d'examen et à 50 exos par examen)
 			nbses = 50 #(nombre de sessions max prises en compte pour cet examen) --> à affiner en récupérant le vrai nombre de sessions ?
 			listsession=[[] for i in range(nbses)] #un élément par session. Cet élément va contenir une liste "nom,date,heure de sessions"
-			
+			note=0 # va contenir la meilleure note
 			ses=" " #mémoire du numéro de la session en cours
 			j=-1 #compteur des sessions
 			debses=0 #pour l'heure de debut de session
@@ -267,30 +266,42 @@ def data_factory(file,feuille,dirpath):
 						j+=1
 						ses = line.session 
 						debses=line.time
-						listsession[j].append({'date' : line.date ,  'heure' : line.timetext ,'exos':[0]*nbses,'data' :[0]*nbses}) 
+						totalnoteses=0 #total des notes (IL FAUDRA PR>ENDRE EN COMPTE LES COEFF PLUS> TARD...)
+						totalcoeffses=3 #total des coeff (POUR LE MOMENT TOUJOURS DES 1...)
+						listsession[j].append({'date' : line.date ,  'heure' : line.timetext ,'data' :[0]*nbses,'note' : 0}) 
 						#listsession[j] contient la liste des {date,heure de début,liste des références des exos,données d'activité} des sessions sur la session j
+
 					if(line.type == "new"):
-						listsession[j][-1]['exos'][line.exercise-1]=line.ref
 						if numline<len(content)-1:
 							line2 = LigneLogExam(content[numline + 1])
 							if str(line2.session)==str(ses):
 								duree=int(line2.time - line.time)
 								tempsmini+=duree
 								c="·"*int(duree/60) #un point par minute
-								c+=" X "
-								flash(c)
+								c+=" X, "
+								listsession[j][-1]['data'][line.exercise-1]=["("+str(line.ref)+")",c] #les données d'activités sont une liste de couples "couleur,caractère / score"
+								#PROBLEME : QUAND PAS "NEW", IL FAUT STOCKER LE LINE.REF AUTREMENT...
 					if(line.type == "score"):
-						c=c.replace("X",str(int(line.score))+", ")
-						flash(c)
-						listsession[j][-1]['data'][line.exercise-1]=[line.score,c] #les données d'activités sont une liste de couples "couleur,caractère / score"
+						c=c.replace("X",str(int(line.score)))
+						totalnoteses+=line.score
+						listsession[j][-1]['data'][line.exercise-1]=["("+str(line.ref)+")",c] #les données d'activités sont une liste de couples "couleur,caractère / score"
 						if numline<len(content)-1:
 							line2 = LigneLogExam(content[numline + 1])
-							if str(line2.session) != str(ses): #on va changer de session à la requête suivante : il faut finaliser la duree de cette session
+							if str(line2.session) != str(ses): #on va changer de session à la requête suivante : il faut finaliser la duree et la note de cette session
 								dureeses=int(line.time-debses)
 								tempsmaxi+=dureeses
+								noteses=int(totalnoteses*10/totalcoeffses)/10 #arrondie au dixième
+								if noteses>note:
+									note=noteses
+								listsession[j][-1]['note']=noteses 
 						else : #on est à la dernière requête
 							dureeses=int(line.time-debses)
-							tempsmaxi+=dureeses
+							tempsmaxi+=dureeses	
+							#on enregistre la note de la session
+							noteses=int(totalnoteses*10/totalcoeffses)/10 #arrondie au dixième
+							if noteses>note:
+								note=noteses
+							listsession[j][-1]['note']=noteses 
 							
 			user.listdata = listsession
 			user.h = tempsmini // 3600
@@ -299,7 +310,7 @@ def data_factory(file,feuille,dirpath):
 			user.sh = tempsmaxi // 3600
 			stotale = tempsmaxi % 3600
 			user.smin = stotale // 60
-			user.note=2		
+			user.note=note	
 		#line = LigneLogExam('E20241014.19:25:34 BG094BEA8D  3  3 score 10  	2.9.112.193	')
 		#flash(line.date)
 		#flash(line.time)

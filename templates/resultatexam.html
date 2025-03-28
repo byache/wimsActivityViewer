@@ -45,16 +45,17 @@
 		{% for user in data %} 
 			<p><b>Wims : </b>travail sur {{ nom|safe }}</p>
 			<p><b>Elève : </b>{{ user.firstname }} {{ user.lastname }}</p>
-			<p><b>Note :</b> {{ user.note }} </p>{{user.listdata}}
+			<p><b>Note :</b> {{ user.note }} </p>
 			<p><b>Durée approximative de travail : </b>{{ user.h }} h {{ user.min }} min ... et sans doute plus de {{ user.sh }} h {{ user.smin }} min.</p>
-			<p><b>Légende : </b>Chaque nombre indique un score obtenu et les petits points indiquent le temps de recherche (un point représente une minute).</p>
+			<p><b>Légende : </b>Chaque nombre indique un score obtenu et les petits points indiquent le temps de recherche (un point représente une minute).
+			<br/>Le caractère "X" indique qu'un énoncé a été visualisé mais qu'aucune réponse n'a été envoyée au serveur.</p>
 			<ul>
 			{% for session in user.listdata %}
 				{% for dict in session %}
 				<li><b>Le {{ dict['date'] }} à partir de {{ dict['heure'] }} : </b>
 					{% for data in dict['data'] %}
-						{{ data[1] }} 
-					{% endfor %}
+						<span style="font-size: smaller;">{{ data[0] }}</span>{{ data[1] }} 
+					{% endfor %} note : {{ dict['note'] }}
 				</li>
 				{% endfor %}
 			{% endfor %}
