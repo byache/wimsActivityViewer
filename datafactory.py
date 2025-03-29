@@ -225,6 +225,7 @@ def data_factory(file,feuille,dirpath):
 	except:
 		return 'error',"Vous devez renvoyer l'archive de votre classe car elle a été supprimée du serveur."
 
+	flash(feuille)
 	#s'il faut analyser un examen
 	if 'examen' in feuille :
 		page='resultatexam.html'
@@ -252,6 +253,7 @@ def data_factory(file,feuille,dirpath):
 			j=-1 #compteur des sessions
 			debses=0 #pour l'heure de debut de session
 			c="" #c va contenir un symbole montrant le temps de travail
+			ref="" #va contenir la référence de l'exo
 			for numline in range(len(content)):
 				line = LigneLogExam(content[numline])
 				if(line.exam == examen):
@@ -268,10 +270,11 @@ def data_factory(file,feuille,dirpath):
 						debses=line.time
 						totalnoteses=0 #total des notes (IL FAUDRA PR>ENDRE EN COMPTE LES COEFF PLUS> TARD...)
 						totalcoeffses=3 #total des coeff (POUR LE MOMENT TOUJOURS DES 1...)
-						listsession[j].append({'date' : line.date ,  'heure' : line.timetext ,'data' :[0]*nbses,'note' : 0}) 
+						listsession[j].append({'date' : line.date ,  'heure' : line.timetext ,'data' :[""]*nbses,'note' : 0}) 
 						#listsession[j] contient la liste des {date,heure de début,liste des références des exos,données d'activité} des sessions sur la session j
 
 					if(line.type == "new"):
+						ref=line.ref
 						if numline<len(content)-1:
 							line2 = LigneLogExam(content[numline + 1])
 							if str(line2.session)==str(ses):
@@ -279,47 +282,38 @@ def data_factory(file,feuille,dirpath):
 								tempsmini+=duree
 								c="·"*int(duree/60) #un point par minute
 								c+=" X, "
-								listsession[j][-1]['data'][line.exercise-1]=["("+str(line.ref)+")",c] #les données d'activités sont une liste de couples "couleur,caractère / score"
-								#PROBLEME : QUAND PAS "NEW", IL FAUT STOCKER LE LINE.REF AUTREMENT...
+								listsession[j][-1]['data'][line.exercise-1]=["("+str(ref)+")",c] #les données d'activités sont une liste de couples "reference, durée"
 					if(line.type == "score"):
 						c=c.replace("X",str(int(line.score)))
 						totalnoteses+=line.score
-						listsession[j][-1]['data'][line.exercise-1]=["("+str(line.ref)+")",c] #les données d'activités sont une liste de couples "couleur,caractère / score"
-						if numline<len(content)-1:
-							line2 = LigneLogExam(content[numline + 1])
-							if str(line2.session) != str(ses): #on va changer de session à la requête suivante : il faut finaliser la duree et la note de cette session
-								dureeses=int(line.time-debses)
-								tempsmaxi+=dureeses
-								noteses=int(totalnoteses*10/totalcoeffses)/10 #arrondie au dixième
-								if noteses>note:
-									note=noteses
-								listsession[j][-1]['note']=noteses 
-						else : #on est à la dernière requête
+						listsession[j][-1]['data'][line.exercise-1]=["("+str(ref)+")",c] #les données d'activités sont une liste de couples "couleur,caractère / score"
+					if numline<len(content)-1:
+						line2 = LigneLogExam(content[numline + 1])
+						if str(line2.session) != str(ses): #on va changer de session à la requête suivante : il faut finaliser la duree et la note de cette session
 							dureeses=int(line.time-debses)
-							tempsmaxi+=dureeses	
-							#on enregistre la note de la session
+							tempsmaxi+=dureeses
 							noteses=int(totalnoteses*10/totalcoeffses)/10 #arrondie au dixième
 							if noteses>note:
 								note=noteses
 							listsession[j][-1]['note']=noteses 
+					else : #on est à la dernière requête
+						dureeses=int(line.time-debses)
+						tempsmaxi+=dureeses	
+						#on enregistre la note de la session
+						noteses=int(totalnoteses*10/totalcoeffses)/10 #arrondie au dixième
+						if noteses>note:
+							note=noteses
+						listsession[j][-1]['note']=noteses 
 							
 			user.listdata = listsession
-			user.h = tempsmini // 3600
-			stotale = tempsmini % 3600
-			user.min = stotale // 60
-			user.sh = tempsmaxi // 3600
+			user.h = tempsmaxi // 3600
 			stotale = tempsmaxi % 3600
+			user.min = stotale // 60
+			user.sh = tempsmini // 3600
+			stotale = tempsmini % 3600
 			user.smin = stotale // 60
 			user.note=note	
-		#line = LigneLogExam('E20241014.19:25:34 BG094BEA8D  3  3 score 10  	2.9.112.193	')
-		#flash(line.date)
-		#flash(line.time)
-		#flash(line.timetext)
-		#flash(line.type)
-		#flash(line.session)
-		#flash(line.exam)
-		#flash(line.exercise)
-		#flash(line.score)
+
 	else :
 		page='resultat.html'
 		#s'il faut analyser un examen ou une feuille
@@ -341,7 +335,7 @@ def data_factory(file,feuille,dirpath):
 	
 			#données à envoyer à la vue pour affichage (on se limite à 50 exos)
 			listsession=[[] for i in range(nbex)] #un élément par exo. Cet élément va contenir une liste de dates de sessions
-			listdata=[None]*nbex #un élément par exo. Cet élément va contenir une liste de données à afficher
+			listdata=[[] for i in range(nbex)] #un élément par exo. Cet élément va contenir une liste de données à afficher
 			listscores=[[] for i in range(nbex)] #un élément par exo. Cet élément va contenir la liste des scores obtenus à cet exo, dans l'ordre
 			listscoresnote=[[] for i in range(nbex)] #un élément par exo. Cet élément va contenir la liste des scores à prendre en compte pour la note
 			
@@ -381,7 +375,7 @@ def data_factory(file,feuille,dirpath):
 
 					if str(line.session) != str(ses[exo - 1]): #on a changé de session
 						ses[exo - 1] = line.session 
-						listdata[exo - 1]={'date' : line.date ,  'heure' : line.timetext ,'data' : []} #listdata[j] contient le dictionnaire {date,heure de début,données d'activité} des sessions sur l'exo j+1
+						listdata[exo - 1].append({'date' : line.date ,  'heure' : line.timetext ,'data' : []}) #listdata[j] contient le dictionnaire {date,heure de début,données d'activité} des sessions sur l'exo j+1
 					color = "green"
 					if(line.sc):
 						color = "red" #couleur rouge si le score est activé, verte sinon
@@ -405,14 +399,13 @@ def data_factory(file,feuille,dirpath):
 							listscoresnote[exo-1] += [line.score]
 						durmin[exo-1] += dureescore 
 					dur[exo-1] += duree 
-					listdata[exo - 1]['data'].append([color,c]) #les données d'activités sont une liste de couples "couleur,caractère / score"
+					listdata[exo - 1][-1]['data'].append([color,c]) #les données d'activités sont une liste de couples "couleur,caractère / score"
 
 			#listsession = [x for x in listsession if x] #permet d'enlever tous les éléments vides []...
 			#listdata = [x for x in listdata if x] #permet d'enlever tous les éléments vides []...
 			#listscores = [x for x in listscores if x] #permet d'enlever tous les éléments vides []...
 			
 			user.listdata = listdata
-			flash(listdata)
 			dureetotale = 0
 			for duree in dur:
 				dureetotale += duree
@@ -427,11 +420,6 @@ def data_factory(file,feuille,dirpath):
 			sstotale = sdureetotale % 3600
 			user.smin = sstotale // 60
 			
-			
-			#flash(sn)
-			#flash(line.sheet)
-			#flash(listscores)
-			#flash('**')
 			user.note=computescore(listscoresnote,prepare,sn,st)
 	
 	nom = fsheets(file)[feuille]
