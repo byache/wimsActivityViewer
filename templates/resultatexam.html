@@ -29,7 +29,7 @@
 			</div>
 			<div>
 				<input type="radio" name="page" value="feuille">
-				<label>Demander l'analyse d'une autre feuille de travail.</label>
+				<label>Demander l'analyse d'autres ressources dans la même classe.</label>
 			</div>
 			<div>
 				<input type="radio" name="page" value="logout">
@@ -49,19 +49,17 @@
 			<p><b>Durée approximative de travail : </b>{{ user.h }} h {{ user.min }} min ... et sans doute plus de {{ user.sh }} h {{ user.smin }} min.</p>
 			<p><b>Légende : </b>Chaque nombre indique un score obtenu et les petits points indiquent le temps de recherche (un point représente une minute).
 			<br/>Le caractère "X" indique qu'un énoncé a été visualisé mais qu'aucune réponse n'a été envoyée au serveur.</p>
-			<ul>
+			<table style="table-layout: auto;margin: auto;width: auto;">
 			{% for session in user.listdata %}
 				{% for dict in session %}
-				<li>Le {{ dict['date'] }} à partir de {{ dict['heure'] }} : 
+				<tr><td>Le {{ dict['date'] }} à partir de {{ dict['heure'] }} :&nbsp;&nbsp;</td><td>{{ dict['nom']|safe }}.&nbsp;&nbsp;</td>
 					{% for data in dict['data'] %}
-						{% if data|length > 0 %}
-							Ex. <span style="font-size: smaller;">{{ data[0] }}</span> <b> {{ data[1] }} </b> 
-						{% endif %}
-					{% endfor %} note : {{ dict['note'] }}
-				</li>
+						<td>Ex {{ loop.index }} <span style="font-size: smaller;">{{ data[0] }}</span> : <b> {{ data[1] }} </b> &nbsp;&nbsp;</td>
+					{% endfor %} <td>note : {{ dict['note'] }}</td>
+				</tr>
 				{% endfor %}
 			{% endfor %}
-			</ul>
+			</table>
 			<b>Commentaires : </b>
 			<hr>
 		{% endfor %}

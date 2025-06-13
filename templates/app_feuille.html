@@ -1,10 +1,10 @@
 	
-	<h3>Sélection de la feuille de travail Wims</h2>
-	<p>Choisissez une feuille de travail :</p>
+	<h3>Sélection de la feuille de travail ou des examens Wims</h2>
+	<p>Choisissez ci-dessous UNE SEULE feuille de travail, ou alors UN ou PLUSIEURS examens :</p>
 	<form method="post" enctype="multipart/form-data">
-		{% for key,txt in feuilles.items() %}
+		{% for key,txt in feuilles[0]+feuilles[1] %}
 		<div>
-			<input type="checkbox" name="feuille" value={{ key }}:{{ txt }}>
+			<input type="checkbox" name="feuille" value={{ key }}>
 			<label>{{ txt|safe }}</label>
 		</div>
 		{% endfor %}

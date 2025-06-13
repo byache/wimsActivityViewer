@@ -48,7 +48,6 @@ def download_file(session,titre):
 
 @app.route('/', methods=['GET', 'POST'])
 def main_function():
-	flash('Bug pas encore corrigé : les notes de cette appli sont légèrement différentes (un peu supérieures) à celles de Wims')
 	# on crée le répertoire tmp s'il n'existe pas déjà
 	os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 	# on nettoie les sessions trop vieilles (+ de 1h)
@@ -86,11 +85,12 @@ def main_function():
 			#session['page'] = "accueil"
 			return redirect(request.url)
 		if 'file' not in request.files and os.path.isfile(zipname):
-			try:
-				feuilles = fsheets(zipname)
-			except:
-				flash("Votre zip ne semble pas être une sauvegarde de classe Wims. Erreur de fichier ?")
-				return redirect(request.url)
+			feuilles = fsheets(zipname)##########################################TEST UNIQUEMENT
+#			try:
+#				feuilles = fsheets(zipname)
+#			except:
+#				flash("Votre zip ne semble pas être une sauvegarde de classe Wims. Erreur de fichier ?")
+#				return redirect(request.url)
 		if 'file' in request.files:
 			file = request.files['file']
 			# if user does not select file, browser also
@@ -106,18 +106,19 @@ def main_function():
 				return redirect(request.url)
 			if file and allowed_file(file.filename):
 				file.save(zipname)
-				try:
-					feuilles = fsheets(zipname)
-				except:
-					flash("Votre zip ne semble pas être une sauvegarde de classe Wims. Erreur de fichier ?")
-					return redirect(request.url)
+				feuilles = fsheets(zipname)##########################################TEST UNIQUEMENT
+#				try:
+#					feuilles = fsheets(zipname)
+#				except:
+#					flash("Votre zip ne semble pas être une sauvegarde de classe Wims. Erreur de fichier ?")
+#					return redirect(request.url)
 	elif page == 'logout':
 		cleanData(pseudo)
 		session.pop('username', None)
 		flash("Vos données ont été supprimées du serveur. Au revoir et à bientôt.")
 		return redirect(request.url)
 	elif page == 'result':
-		feuille = request.form['feuille']
+		feuille = request.form.getlist("feuille")
 		dtfct = data_factory(zipname,feuille,dirpath)
 		if dtfct[0]=='error':
 			flash(dtfct[1])

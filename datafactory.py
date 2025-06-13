@@ -38,29 +38,42 @@ def crlist(file):
 	
 def fsheets(file):
 	""" Va chercher la liste des titres des feuilles et des examens
+	structure : [listefeuilles,listeexamens]
+	avec listefeuille=[liste de couples[Ei (ou Si),"titre exam ou feuille i"]]
 	"""
 	with ZipFile(file) as myzip:
 		file2 = myzip.read('class/sheets/.sheets')
 		file2 = file2.decode('latin1').split('\n:')
-		res = {}
+		res = [list(),list()] #première liste pour les feuilles et 2e pour les examens
 		i=0
-		j=0
 		for sh in file2:
-			if len(sh)>2 and sh[0]!= "0":
-				titre = 'feuille&nbsp;'+str(j)+'&nbsp;:&nbsp;'+sh.split('\n')[2]
-				res[i] = titre
+			if len(sh)>2 :
+				titre = 'feuille&nbsp;'+str(i)+'&nbsp;:&nbsp;'+sh.split('\n')[2]
+				res[0].append(["S"+str(i),titre])
 			i+=1
-			j+=1
 		file2 = myzip.read('class/exams/.exams')
 		file2 = file2.decode('latin1').split('\n:')
-		j=0
+		i=0
 		for sh in file2:
-			if len(sh)>2 and sh[0]!= "0":
-				titre = 'examen&nbsp;'+str(j)+'&nbsp;:&nbsp;'+sh.split('\n')[3]
-				res[i] = titre
+			if len(sh)>2 :
+				titre = 'examen&nbsp;'+str(i)+'&nbsp;:&nbsp;'+sh.split('\n')[3]
+				res[1].append(["E"+str(i),titre])
 			i+=1
-			j+=1
 	return res
+
+def cntnbex(file,typ,num):
+	""" Va chercher le nombre d'exercice de l'examen ou de la feuille
+	typ : E pour examen ou S pour feuille
+	num : numéro de l'examen ou de la feuille
+	"""
+	if typ == 'E':
+		chemin='class/exams/.exam'+str(num-1)
+	else :
+		chemin='class/sheets/.sheet'+str(num-1)
+	with ZipFile(file) as myzip:
+		file2 = myzip.read(chemin)
+		file2 = file2.decode('latin1').split('\n:')
+		return len([sh for sh in file2 if sh != ''])
 
 
 def createodt(file,data,feuille,nom,dirpath):
@@ -218,21 +231,28 @@ def createodt(file,data,feuille,nom,dirpath):
 
 #fonction principale, qui lit les données brutes, re-calcule la note de wims, génère un fichier odt et le contenu de la vue html
 def data_factory(file,feuille,dirpath):  
-	#file : le fichier .zip contenant l'archive de la classe wims ; feuille : un integer contenant le numéro de la feuille wims à regarder
-	data = crlist(file)
+	#file : le fichier .zip contenant l'archive de la classe wims ; feuille : une liste contenant la référence de la feuille ou des examens à regarder
 	try:
-		data = crlist(file)
+		data = crlist(file) #liste des participants
 	except:
 		return 'error',"Vous devez renvoyer l'archive de votre classe car elle a été supprimée du serveur."
 
-	flash(feuille)
+	listenoms=fsheets(file)
+	#liste des premiers caractères pour voir s'il y a des E ou des S
+	EorS=[ item[0] for item in feuille]
+	#liste des numéros des examens ou feuilles :
+	feuille=[ int(item[1:]) for item in feuille]
+	#erreur si plusieurs feuilles cochées ou si feuilles et examens cochés simultanément
+	if 'E' in EorS and 'S' in EorS :
+		flash('Attention : vous ne pouvez pas mélanger des feuilles et des examens. Vous ne pouvez cocher qu\'une seule feuille ou alors un ou plusieurs examens.')
+		page='accueil.html'
+	elif 'S' in EorS and len(EorS)>1 :
+		flash('Attention : vous ne pouvez pas cocher plusieurs feuilles.')
+		page='accueil.html'
 	#s'il faut analyser un examen
-	if 'examen' in feuille :
+	elif 'E' in EorS :
 		page='resultatexam.html'
-		#feuille est le numéro dans la liste "liste des feuilles, liste des examens"
-		#examen est le numéro de l'examen
-		feuille,examen=int(feuille.split(':')[0]),feuille.split(':')[1]
-		examen=int(examen.replace('examen','').replace('&nbsp;',''))
+		examen=feuille
 		for i in range(len(data)):
 			user = data[i]
 			login = user.login
@@ -256,7 +276,7 @@ def data_factory(file,feuille,dirpath):
 			ref="" #va contenir la référence de l'exo
 			for numline in range(len(content)):
 				line = LigneLogExam(content[numline])
-				if(line.exam == examen):
+				if(line.exam in examen):
 					exo = line.exercise
 					if(exo > len(listsession)): #il y avait plus de 50 exos dans la feuille mettre un message d'erreur sur la page ?
 						print(
@@ -269,8 +289,10 @@ def data_factory(file,feuille,dirpath):
 						ses = line.session 
 						debses=line.time
 						totalnoteses=0 #total des notes (IL FAUDRA PR>ENDRE EN COMPTE LES COEFF PLUS> TARD...)
-						totalcoeffses=3 #total des coeff (POUR LE MOMENT TOUJOURS DES 1...)
-						listsession[j].append({'date' : line.date ,  'heure' : line.timetext ,'data' :[""]*nbses,'note' : 0}) 
+						nbex=cntnbex(file,'E',line.exam+1)
+						totalcoeffses=nbex #total des coeff (POUR LE MOMENT TOUJOURS DES 1...)
+					
+						listsession[j].append({'date' : line.date ,  'heure' : line.timetext ,'data' :[""]*(nbex),'note' : 0, 'nom' : listenoms[1][line.exam-1][1]}) 
 						#listsession[j] contient la liste des {date,heure de début,liste des références des exos,données d'activité} des sessions sur la session j
 
 					if(line.type == "new"):
@@ -315,7 +337,9 @@ def data_factory(file,feuille,dirpath):
 			user.note=note	
 
 	else :
+		#LA SUITE EST A RELIRE ET MODIFIER !!!
 		page='resultat.html'
+		flash('Bug pas encore corrigé : les notes de cette appli sont légèrement différentes (un peu supérieures) à celles de Wims')
 		#s'il faut analyser un examen ou une feuille
 		#feuille est le numéro de la feuille
 		feuille=feuille.split(':')[1]
@@ -422,11 +446,13 @@ def data_factory(file,feuille,dirpath):
 			
 			user.note=computescore(listscoresnote,prepare,sn,st)
 	
-	nom = fsheets(file)[feuille]
-	if nom[0]=='f' :
-		nom = 'la '+nom
+	if 'S' in EorS :
+		nom = 'la feuille n°'+str(EorS)
 	else :
-		nom = "l'"+nom
+		if len(EorS)==1 :
+			nom = "l'examen n°"+str(feuille[0])
+		else:
+			nom = "les examens numéros : "+str(feuille)
 	#lien = createodt(file,data,feuille,nom,dirpath)
 	lien='ok'
 	return render_template(page, feuille=feuille, data=data, lien=lien, nom=nom)
