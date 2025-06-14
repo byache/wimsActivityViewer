@@ -6,9 +6,12 @@ from zipfile import ZipFile
 from classes import *
 from flask import render_template,flash,redirect,request
 from odf.opendocument import OpenDocumentText
+from odf import text, teletype, userfield, table
 from odf.style import Style, TextProperties, ParagraphProperties, FontFace
+from odf.style import TableProperties, TableRowProperties, TableColumnProperties, TableCellProperties
 from odf.text import H, P, Span
 from odf.office import FontFaceDecls
+from odf.table import Table, TableColumn, TableRow, TableCell
 from notes import *
 from jinja2 import Environment, PackageLoader, select_autoescape, FileSystemLoader
 import os.path
@@ -229,6 +232,215 @@ def createodt(file,data,feuille,nom,dirpath):
 	textdoc.save(titre)
 	return titre
 
+def createodtexam(file,data,feuille,nom,dirpath):
+
+	textdoc = OpenDocumentText()
+	textdoc.fontfacedecls.addElement(FontFace(name="Arial",fontfamily="Arial",fontfamilygeneric="swiss",fontpitch="variable"))
+	# Styles
+	s = textdoc.styles
+	#style normal   ---> faire plutôt un style par défaut en justifié taille 16...
+	StandardStyle = Style(name="Standard", family="paragraph")
+	StandardStyle.addElement(TextProperties(fontsize="12"))
+	s.addElement(StandardStyle)
+	# bold style
+	b = Style(name="b", family="text", parentstylename='Standard')
+	boldprop = TextProperties(fontweight="bold")
+	b.addElement(boldprop)
+	textdoc.automaticstyles.addElement(b)
+	# red style
+	r = Style(name="r", family="text", parentstylename='Standard')
+	redprop = TextProperties(fontweight="bold", color="#FF0000")
+	r.addElement(redprop)
+	textdoc.automaticstyles.addElement(r)
+	# green style
+	g = Style(name="g", family="text", parentstylename='Standard')
+	greenprop = TextProperties(color="#008000")
+	g.addElement(greenprop)
+	textdoc.automaticstyles.addElement(g)
+	# Create a style for the paragraph with page-break
+	pb = Style(name="pb", parentstylename="Standard", family="paragraph")
+	pb.addElement(ParagraphProperties(breakafter="page")) #mettre breakafter ?
+	textdoc.automaticstyles.addElement(pb)
+	#table styling - Its like CSS in html
+	table_style = Style(name="table-style", family="table")
+	table_style.addElement(TableProperties(align="margins"))
+	textdoc.automaticstyles.addElement(table_style)
+
+	table_cell_style = Style(name="table-cell-style", family="table-cell")
+	table_cell_style.addElement(TableCellProperties(border="0pt solid #000000"))
+	textdoc.automaticstyles.addElement(table_cell_style)
+
+	table_column_style = Style(name="table-column-style", family="table-column")
+	table_column_style.addElement(TableColumnProperties(columnwidth="9.0in"))
+	textdoc.automaticstyles.addElement(table_column_style)
+	
+	table_column_style = Style(name="table-columnlong-style", family="table-column")
+	table_column_style.addElement(TableColumnProperties(columnwidth="30.0in"))
+	textdoc.automaticstyles.addElement(table_column_style)
+
+	table_row_style = Style(name="table-row-style", family="table-row")
+	table_row_style.addElement(TableRowProperties(useoptimalrowheight=True))
+	textdoc.automaticstyles.addElement(table_row_style)
+	#--styling ends here--
+
+	# Text
+	p = P()
+	part = Span(stylename = b, text="Mode d'emploi pour le prof : ")
+	p.addElement(part)
+	textdoc.text.addElement(p)
+	p = P()
+	part = Span(text="Il y a une page par élève.")
+	p.addElement(part)
+	textdoc.text.addElement(p)
+	p = P()
+	part = Span(text="Compléter le bas de chaque page par un commentaire, par exemple sur l'efficacité des méthodes de travail de l'élève.")
+	p.addElement(part)
+	textdoc.text.addElement(p)
+	p = P()
+	part = Span(text="Imprimer en deux pages par feuilles et faire un rendu à la classe.")
+	p.addElement(part)
+	textdoc.text.addElement(p)
+	
+	p = P()
+	textdoc.text.addElement(p)
+	
+	p = P(stylename=pb)
+	textdoc.text.addElement(p)
+	
+	for user in data:
+		p = P()
+		part = Span(stylename=b, text = "Wims : ")
+		p.addElement(part)
+		part = Span(text = "bilan du travail sur "+nom)
+		p.addElement(part)      
+		textdoc.text.addElement(p)
+		
+		p = P()
+		textdoc.text.addElement(p)
+
+		p = P()
+		part = Span(stylename = b, text="Élève : ")
+		p.addElement(part)
+		part = Span(text = user.firstname+" "+user.lastname)
+		p.addElement(part)
+		textdoc.text.addElement(p)
+		
+		p = P()
+		textdoc.text.addElement(p)
+		
+		p = P()
+		part = Span(stylename = b, text="Note : ")
+		p.addElement(part)
+		part = Span(text = str(user.note))
+		p.addElement(part)
+		textdoc.text.addElement(p)
+		
+		p = P()
+		textdoc.text.addElement(p)
+		
+		p = P()
+		part = Span(stylename = b, text="Durée approximative de travail : ")
+		p.addElement(part)
+		part = Span(text = str(user.h)+" h "+str(user.min)+" min (sans doute plus que " + str(user.sh)+" h "+str(user.smin)+" min)")
+		p.addElement(part)
+		textdoc.text.addElement(p)
+		
+		p = P()
+		textdoc.text.addElement(p)
+		
+		p = P()
+		part = Span(stylename = b, text="Légende : ")
+		p.addElement(part)
+		part = Span(text="Chaque nombre indique un score obtenu et les petits points indiquent le temps de recherche (un point représente une minute).")
+		p.addElement(part)
+		textdoc.text.addElement(p)
+		p = P()
+		part = Span(text='Le caractère "X" indique qu\'un énoncé a été visualisé mais qu\'aucune réponse n\'a été envoyée au serveur.')
+		p.addElement(part)
+		textdoc.text.addElement(p)
+		
+		p = P()
+		textdoc.text.addElement(p)
+		
+				
+		# create table 
+		"""# add 11 columns to the table
+		table_column = TableColumn(numbercolumnsrepeated="11", stylename="table-column-style")
+		doc_table.addElement(table_column)
+		
+		#   or you can do the followig for the same as above
+		for i in range(11):
+			table_column = TableColumn(stylename="table-column-style")
+			doc_table.addElement(table_column)
+		
+		# add data of 10 rows in the table
+		for i in range(10):
+			table_row = TableRow()   
+			doc_table.addElement(table_row)
+			# PUT A TO K IN THE CELLS
+			data = ("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K")
+			for i in list(data):
+				column_data = TableCell(valuetype="string", stylename="table-cell-style")
+				table_row.addElement(column_data)
+				column_data.addElement(text.P(text=i))
+		textdoc.text.addElement(doc_table)
+		"""
+		
+		for i in range(len(user.listdata)):
+			if len(user.listdata[i]) > 0 :
+				for dico in user.listdata[i]:
+					p = P()
+					part = Span(text="Le "+dico['date'] + " à partir de " + dico['heure'] + " : "+ dico['nom'].replace("&nbsp;"," ") +".")
+					p.addElement(part)
+					textdoc.text.addElement(p)
+					i=1
+					#p = P()
+					doc_table = Table(name="xyz-table", stylename="table-style")
+					table_column = TableColumn(numbercolumnsrepeated=len(dico['data'])+2, stylename="table-column-style")
+					doc_table.addElement(table_column)
+					table_row = TableRow()   
+					doc_table.addElement(table_row)
+					column_data = TableCell(valuetype="string", stylename="table-cell-style")
+					table_row.addElement(column_data)
+					column_data.addElement(text.P(text=""))
+					for dat in dico['data']:
+						if len(dat)==2:
+							column_data = TableCell(valuetype="string", stylename="table-cell-style")
+							table_row.addElement(column_data)
+							column_data.addElement(text.P(text="Ex "+str(i)+str(dat[0])+" : "+str(dat[1])))
+							#ref,don=dat
+							#part = Span(text="Ex "+str(i)+str(ref)+" : ")
+							#p.addElement(part)
+							#part = Span(stylename = b, text=str(don))
+							#p.addElement(part)
+							i+=1
+					#textdoc.text.addElement(p)
+					column_data = TableCell(valuetype="string", stylename="table-cell-style")
+					table_row.addElement(column_data)
+					column_data.addElement(text.P(text="note : "+ str(dico['note'])))
+					textdoc.text.addElement(doc_table)
+					p = P()
+					textdoc.text.addElement(p)
+
+		p = P()
+		textdoc.text.addElement(p)
+		
+		p = P()
+		part = Span(stylename = b, text="Commentaires : ")
+		p.addElement(part)
+		textdoc.text.addElement(p)
+		
+		p = P()
+		textdoc.text.addElement(p)
+		
+		p = P(stylename=pb)
+		textdoc.text.addElement(p)
+	titre = 'WimsActivityViewer_feuille_'+str(feuille)+'.odt'
+	titre = os.path.join(dirpath,titre)
+	textdoc.save(titre)
+	return titre
+
+
 #fonction principale, qui lit les données brutes, re-calcule la note de wims, génère un fichier odt et le contenu de la vue html
 def data_factory(file,feuille,dirpath):  
 	#file : le fichier .zip contenant l'archive de la classe wims ; feuille : une liste contenant la référence de la feuille ou des examens à regarder
@@ -303,7 +515,7 @@ def data_factory(file,feuille,dirpath):
 								duree=int(line2.time - line.time)
 								tempsmini+=duree
 								c="·"*int(duree/60) #un point par minute
-								c+=" X, "
+								c+=" X "
 								listsession[j][-1]['data'][line.exercise-1]=["("+str(ref)+")",c] #les données d'activités sont une liste de couples "reference, durée"
 					if(line.type == "score"):
 						c=c.replace("X",str(int(line.score)))
@@ -448,12 +660,13 @@ def data_factory(file,feuille,dirpath):
 	
 	if 'S' in EorS :
 		nom = 'la feuille n°'+str(EorS)
+		lien = createodt(file,data,feuille,nom,dirpath)
 	else :
 		if len(EorS)==1 :
 			nom = "l'examen n°"+str(feuille[0])
 		else:
 			nom = "les examens numéros : "+str(feuille)
-	#lien = createodt(file,data,feuille,nom,dirpath)
-	lien='ok'
+		lien = createodtexam(file,data,feuille,nom,dirpath)
+
 	return render_template(page, feuille=feuille, data=data, lien=lien, nom=nom)
 
