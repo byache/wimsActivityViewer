@@ -45,15 +45,15 @@ def fsheets(file):
 	avec listefeuille=[liste de couples[Ei (ou Si),"titre exam ou feuille i"]]
 	"""
 	with ZipFile(file) as myzip:
-		file2 = myzip.read('class/sheets/.sheets')
-		file2 = file2.decode('latin1').split('\n:')
+		"""file2 = myzip.read('class/sheets/.sheets')
+		file2 = file2.decode('latin1').split('\n:')"""
 		res = [list(),list()] #première liste pour les feuilles et 2e pour les examens
-		i=0
+		"""i=0
 		for sh in file2:
 			if len(sh)>2 :
 				titre = 'feuille&nbsp;'+str(i)+'&nbsp;:&nbsp;'+sh.split('\n')[2]
 				res[0].append(["S"+str(i),titre])
-			i+=1
+			i+=1"""
 		file2 = myzip.read('class/exams/.exams')
 		file2 = file2.decode('latin1').split('\n:')
 		i=0
