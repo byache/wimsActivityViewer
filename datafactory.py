@@ -45,15 +45,15 @@ def fsheets(file):
 	avec listefeuille=[liste de couples[Ei (ou Si),"titre exam ou feuille i"]]
 	"""
 	with ZipFile(file) as myzip:
-		"""file2 = myzip.read('class/sheets/.sheets')
-		file2 = file2.decode('latin1').split('\n:')"""
+		file2 = myzip.read('class/sheets/.sheets')
+		file2 = file2.decode('latin1').split('\n:')
 		res = [list(),list()] #première liste pour les feuilles et 2e pour les examens
-		"""i=0
+		i=0
 		for sh in file2:
 			if len(sh)>2 :
 				titre = 'feuille&nbsp;'+str(i)+'&nbsp;:&nbsp;'+sh.split('\n')[2]
 				res[0].append(["S"+str(i),titre])
-			i+=1"""
+			i+=1
 		file2 = myzip.read('class/exams/.exams')
 		file2 = file2.decode('latin1').split('\n:')
 		i=0
@@ -80,7 +80,7 @@ def cntnbex(file,typ,num):
 
 
 def createodt(file,data,feuille,nom,dirpath):
-
+	nom=nom.replace("&nbsp;"," ").replace("la ","")
 	textdoc = OpenDocumentText()
 	textdoc.fontfacedecls.addElement(FontFace(name="Arial",fontfamily="Arial",fontfamilygeneric="swiss",fontpitch="variable"))
 	# Styles
@@ -233,7 +233,8 @@ def createodt(file,data,feuille,nom,dirpath):
 	return titre
 
 def createodtexam(file,data,feuille,nom,dirpath):
-
+	if "nbsp" in nom:
+		nom=nom.replace("&nbsp;"," ")
 	textdoc = OpenDocumentText()
 	textdoc.fontfacedecls.addElement(FontFace(name="Arial",fontfamily="Arial",fontfamilygeneric="swiss",fontpitch="variable"))
 	# Styles
@@ -363,29 +364,7 @@ def createodtexam(file,data,feuille,nom,dirpath):
 		textdoc.text.addElement(p)
 		
 				
-		# create table 
-		"""# add 11 columns to the table
-		table_column = TableColumn(numbercolumnsrepeated="11", stylename="table-column-style")
-		doc_table.addElement(table_column)
-		
-		#   or you can do the followig for the same as above
-		for i in range(11):
-			table_column = TableColumn(stylename="table-column-style")
-			doc_table.addElement(table_column)
-		
-		# add data of 10 rows in the table
-		for i in range(10):
-			table_row = TableRow()   
-			doc_table.addElement(table_row)
-			# PUT A TO K IN THE CELLS
-			data = ("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K")
-			for i in list(data):
-				column_data = TableCell(valuetype="string", stylename="table-cell-style")
-				table_row.addElement(column_data)
-				column_data.addElement(text.P(text=i))
-		textdoc.text.addElement(doc_table)
-		"""
-		
+		# create table 		
 		for i in range(len(user.listdata)):
 			if len(user.listdata[i]) > 0 :
 				for dico in user.listdata[i]:
@@ -435,7 +414,7 @@ def createodtexam(file,data,feuille,nom,dirpath):
 		
 		p = P(stylename=pb)
 		textdoc.text.addElement(p)
-	titre = 'WimsActivityViewer_feuille_'+str(feuille)+'.odt'
+	titre = 'WimsActivityViewer_examen_'+str(feuille)+'.odt'
 	titre = os.path.join(dirpath,titre)
 	textdoc.save(titre)
 	return titre
@@ -549,13 +528,10 @@ def data_factory(file,feuille,dirpath):
 			user.note=note	
 
 	else :
-		#LA SUITE EST A RELIRE ET MODIFIER !!!
 		page='resultat.html'
-		flash('Bug pas encore corrigé : les notes de cette appli sont légèrement différentes (un peu supérieures) à celles de Wims')
-		#s'il faut analyser un examen ou une feuille
+		flash('Bug pas encore corrigé : les notes de cette appli sont parfois légèrement différentes (un peu supérieures) à celles de Wims')
 		#feuille est le numéro de la feuille
-		feuille=feuille.split(':')[1]
-		feuille=int(feuille.replace('feuille','').replace('&nbsp;',''))
+		feuille=feuille[0]
 		prepare = preparescore(feuille,file)
 		nbex = len(prepare[0])
 		for i in range(len(data)):
@@ -659,11 +635,11 @@ def data_factory(file,feuille,dirpath):
 			user.note=computescore(listscoresnote,prepare,sn,st)
 	
 	if 'S' in EorS :
-		nom = 'la feuille n°'+str(EorS)
+		nom = 'la '+listenoms[0][feuille-1][1]
 		lien = createodt(file,data,feuille,nom,dirpath)
 	else :
 		if len(EorS)==1 :
-			nom = "l'examen n°"+str(feuille[0])
+			nom = "l'"+listenoms[1][feuille[0]-1][1]
 		else:
 			nom = "les examens numéros : "+str(feuille)
 		lien = createodtexam(file,data,feuille,nom,dirpath)
